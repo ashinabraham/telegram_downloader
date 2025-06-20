@@ -20,5 +20,5 @@ RUN mkdir -p saved_files downloads
 RUN adduser -D botuser && chown -R botuser:botuser /app
 USER botuser
 
-# Run the bot
-CMD ["python", "downloader_bot.py"] 
+# Run the bot using the new main.py entry point
+CMD ["python", "main.py"] 
