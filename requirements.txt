@@ -1,0 +1,11 @@
+certifi==2025.6.15
+charset-normalizer==3.4.2
+idna==3.10
+pyaes==1.6.1
+pyasn1==0.6.1
+pyTelegramBotAPI==4.27.0
+python-dotenv==1.1.0
+requests==2.32.4
+rsa==4.9.1
+Telethon==1.40.0
+urllib3==2.5.0
