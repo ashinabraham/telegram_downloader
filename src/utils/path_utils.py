@@ -85,7 +85,10 @@ class PathManager:
     def get_parent_directory(self, path: str) -> str:
         """Get the parent directory of a path."""
         parent = os.path.dirname(path)
-        return parent if parent else '.'
+        # Handle root path and cases where parent is the same as path
+        if not parent or parent == path or parent == '/':
+            return '.'
+        return parent
     
     def is_safe_directory(self, path: str) -> bool:
         """Check if a directory is safe to access (not a system directory)."""

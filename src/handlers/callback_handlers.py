@@ -401,6 +401,9 @@ async def download_file(event, user_id: str, filename: str = None):
                     final_filename = user_filename
                     logger.info(f"No original extension found, using as-is: {final_filename}")
         
+        # Sanitize the final filename to remove problematic characters
+        final_filename = path_manager.sanitize_filename(final_filename)
+        
         save_path = path_manager.join_paths(save_dir, final_filename)
         
         logger.info(f"Queuing download to: {save_path}")

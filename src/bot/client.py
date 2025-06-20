@@ -1,26 +1,29 @@
 """
-Telegram client module for the Telegram File Downloader Bot.
-Handles Telethon client initialization and connection management.
+Telegram client module for the File Downloader Bot.
+Handles client initialization and connection management.
 """
 
+import asyncio
 import logging
 from telethon import TelegramClient
 from telethon.errors import SessionPasswordNeededError
 
-from ..core.config import config
+from ..core.config import get_config
+from ..core.user_state import UserState
 
 logger = logging.getLogger(__name__)
 
-# Initialize Telethon client with optimized settings
+# Get configuration
+config = get_config()
+
+# Initialize user state
+user_state = UserState()
+
+# Initialize Telegram client
 client = TelegramClient(
-    config.session_name, 
-    config.api_id, 
-    config.api_hash,
-    connection_retries=config.connection_retries,
-    retry_delay=config.retry_delay,
-    timeout=config.timeout,
-    request_retries=config.request_retries,
-    flood_sleep_threshold=config.flood_sleep_threshold
+    config.session_name,
+    config.api_id,
+    config.api_hash
 )
 logger.info("Telethon client initialized with optimized settings")
 

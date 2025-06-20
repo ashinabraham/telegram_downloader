@@ -6,7 +6,7 @@ Handles user sessions, states, and state transitions.
 import logging
 from typing import Dict, Any, Optional
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()  # Use root logger for testability
 
 class UserState:
     """User state management class."""

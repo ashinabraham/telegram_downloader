@@ -69,8 +69,7 @@ def create_help_keyboard():
 def create_rename_keyboard():
     """Create keyboard for file renaming options."""
     return [
-        [Button.inline("✅ Skip", "skip_rename")],
-        [Button.inline("✏️ Rename", "rename_file")]
+        [Button.inline("✅ Skip", "skip_rename"), Button.inline("✏️ Rename", "rename_file")]
     ]
 
 def create_status_keyboard(queued: int, downloading: int, failed: int, completed: int):

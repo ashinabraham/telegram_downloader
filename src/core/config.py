@@ -8,15 +8,7 @@ import logging
 import pathlib
 from dotenv import load_dotenv
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("src.core.config")
 
 class Config:
     """Configuration class for the bot."""
@@ -40,7 +32,13 @@ class Config:
         self.api_id = os.getenv('API_ID')
         self.api_hash = os.getenv('API_HASH')
         self.bot_token = os.getenv('BOT_TOKEN')
-        self.allowed_users = set(os.getenv('ALLOWED_USERS', '').split(','))
+        
+        # Parse allowed users, handling whitespace and empty values
+        allowed_users_str = os.getenv('ALLOWED_USERS', '')
+        if allowed_users_str.strip():
+            self.allowed_users = {user.strip() for user in allowed_users_str.split(',') if user.strip()}
+        else:
+            self.allowed_users = set()
         
         # Bot settings
         self.session_name = 'downloader_bot_session'
@@ -82,5 +80,12 @@ class Config:
         logger.info(f"Allowed users: {self.allowed_users}")
         logger.info("Configuration validation completed successfully")
 
-# Global configuration instance
-config = Config() 
+# Global configuration instance - created lazily when needed
+_config_instance = None
+
+def get_config():
+    """Get the global configuration instance."""
+    global _config_instance
+    if _config_instance is None:
+        _config_instance = Config()
+    return _config_instance 
