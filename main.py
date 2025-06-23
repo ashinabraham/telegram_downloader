@@ -16,19 +16,20 @@ from src.handlers.message_handlers import message_handler
 
 logger = logging.getLogger(__name__)
 
+
 async def main():
     """Main function to start the bot."""
     logger.info("Starting Telegram File Downloader Bot...")
-    
+
     try:
         # Start the Telegram client
         await start_client()
         logger.info("Bot connected successfully")
-        print('Bot is running... Press Ctrl+C to stop.')
-        
+        print("Bot is running... Press Ctrl+C to stop.")
+
         # Run the bot until disconnected
         await run_until_disconnected()
-        
+
     except KeyboardInterrupt:
         logger.info("Received interrupt signal, shutting down...")
     except Exception as e:
@@ -38,6 +39,7 @@ async def main():
         logger.info("Bot shutting down")
         await stop_client()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     logger.info("Initializing bot application")
-    asyncio.run(main()) 
+    asyncio.run(main())
