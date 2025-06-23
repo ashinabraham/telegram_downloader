@@ -3,10 +3,8 @@ Telegram client module for the File Downloader Bot.
 Handles client initialization and connection management.
 """
 
-import asyncio
 import logging
 from telethon import TelegramClient
-from telethon.errors import SessionPasswordNeededError
 
 from ..core.config import get_config
 from ..core.user_state import UserState

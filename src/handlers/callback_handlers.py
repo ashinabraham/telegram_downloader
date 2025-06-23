@@ -448,7 +448,7 @@ async def download_file(event, user_id: str, filename: str = None):
         await event.respond(f"📥 Queuing download to: {save_path}")
 
         # Queue the download
-        task = await download_manager.queue_download(user_id, file_message, save_path)
+        await download_manager.queue_download(user_id, file_message, save_path)
 
         # Reset user state but preserve chat_id
         user_state.set_state(user_id, "logged_in", chat_id=chat_id)

@@ -3,7 +3,6 @@ Message handlers module for the Telegram File Downloader Bot.
 Handles text messages, file forwarding, and user state transitions.
 """
 
-import os
 import logging
 from telethon import events
 from telethon.errors import SessionPasswordNeededError
