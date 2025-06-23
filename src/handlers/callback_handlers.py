@@ -10,7 +10,7 @@ import logging
 from telethon import events, Button
 from telethon.errors import MessageNotModifiedError
 
-from ..core.config import config
+from ..core.config import get_config
 from ..core.user_state import user_state
 from ..bot.client import client
 from ..utils.path_utils import path_manager
@@ -24,6 +24,9 @@ from ..utils.keyboard_utils import (
 from ..downloads.download_manager import download_manager
 
 logger = logging.getLogger(__name__)
+
+# Get configuration
+config = get_config()
 
 
 @client.on(events.CallbackQuery())
@@ -368,7 +371,7 @@ async def handle_retry_failed(event, user_id: str):
         await event.answer("No failed downloads to retry.")
 
 
-async def download_file(event, user_id: str, filename: str = None):
+async def download_file(event, user_id: str, filename: str | None = None):
     """Queue file for download instead of downloading immediately."""
     try:
         file_message = user_state.get_user_data(user_id, "file_message")

@@ -7,7 +7,7 @@ import logging
 from telethon import events
 from telethon.errors import SessionPasswordNeededError
 
-from ..core.config import config
+from ..core.config import get_config
 from ..core.user_state import user_state
 from ..bot.client import client
 from ..utils.path_utils import path_manager
@@ -15,6 +15,9 @@ from ..utils.keyboard_utils import create_directory_keyboard
 from ..downloads.download_manager import download_manager
 
 logger = logging.getLogger(__name__)
+
+# Get configuration
+config = get_config()
 
 
 @client.on(events.NewMessage())
