@@ -10,6 +10,10 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      API_ID: 1234
+      API_HASH: dummy
+      BOT_TOKEN: dummy
     
     steps:
     - name: Checkout code
