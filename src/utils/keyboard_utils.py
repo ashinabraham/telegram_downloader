@@ -41,7 +41,7 @@ async def create_directory_keyboard(current_path: str = ""):
 
     # Add "Go to Root" button for easier navigation
     if current_path != "/":
-        nav_buttons.append(Button.inline("🏠 Root", f"dir:/"))
+        nav_buttons.append(Button.inline("🏠 Root", "dir:/"))
 
     encoded_current = path_manager.encode_path(current_path)
     nav_buttons.append(Button.inline("✅ Use Here", f"select:{encoded_current}"))

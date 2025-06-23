@@ -391,7 +391,7 @@ async def download_file(event, user_id: str, filename: str = None):
             error_msg = f"❌ **Permission Error!**\n\nCannot write to directory: {save_dir}\n\n**Error:** Directory is read-only\n\nPlease choose a different location."
             await download_manager.send_notification(user_id, error_msg)
             await event.respond(
-                f"❌ Permission denied: Cannot write to directory {save_dir}"
+                "❌ Permission denied: Cannot write to the selected directory. Please choose a different location."
             )
             user_state.set_state(user_id, "logged_in", chat_id=chat_id)
             return
@@ -458,7 +458,7 @@ async def download_file(event, user_id: str, filename: str = None):
         error_msg = f"❌ **Permission Error!**\n\nCannot write to the selected directory.\n\n**Error:** {str(e)}\n\nPlease choose a different location."
         await download_manager.send_notification(user_id, error_msg)
         await event.respond(
-            f"❌ Permission denied: Cannot write to the selected directory. Please choose a different location."
+            "❌ Permission denied: Cannot write to the selected directory. Please choose a different location."
         )
         user_state.set_state(user_id, "logged_in", chat_id=event.chat_id)
     except Exception as e:
