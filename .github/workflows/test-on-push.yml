@@ -1,9 +1,11 @@
-name: Test on Push
+name: 🧪 Code Quality & Testing Pipeline
 
 on:
   push:
     branches: [ main, develop, feature/*, bugfix/*, hotfix/* ]
     tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, develop ]
 
 jobs:
   test:
@@ -25,14 +27,14 @@ jobs:
         
     - name: Run linting checks
       run: |
-        echo "Running flake8 linting..."
+        echo "🔍 Running flake8 linting..."
         python -m flake8 src/ --max-line-length=120 --ignore=E501,W503
-        echo "Running black formatting check..."
+        echo "🎨 Running black formatting check..."
         python -m black --check src/ tests/ main.py run_tests.py
         
     - name: Run tests with coverage
       run: |
-        echo "Running pytest with coverage..."
+        echo "🧪 Running pytest with coverage..."
         python -m pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=xml
         
     - name: Upload coverage to Codecov
@@ -45,17 +47,17 @@ jobs:
         
     - name: Test Docker build
       run: |
-        echo "Testing Docker build..."
+        echo "🐳 Testing Docker build..."
         docker build -t telegram-downloader-test .
-        echo "Docker build successful!"
+        echo "✅ Docker build successful!"
         
     - name: Test Alpine Docker build
       run: |
-        echo "Testing Alpine Docker build..."
+        echo "🏔️ Testing Alpine Docker build..."
         docker build -t telegram-downloader-alpine -f Dockerfile.alpine .
-        echo "Alpine Docker build successful!"
+        echo "✅ Alpine Docker build successful!"
         
     - name: Run tests in Docker container
       run: |
-        echo "Running tests in Docker container..."
+        echo "🧪 Running tests in Docker container..."
         docker run --rm telegram-downloader-test python -m pytest tests/ -v --cov=src --cov-report=term-missing 
