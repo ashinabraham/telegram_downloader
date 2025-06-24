@@ -54,15 +54,6 @@ jobs:
         make docker-build
         make docker-build-alpine
         
-    - name: Run tests in Docker container
-      run: |
-        echo "🧪 Running tests in Docker container..."
-        docker run --rm \
-          -e API_ID=1234 \
-          -e API_HASH=dummy \
-          -e BOT_TOKEN=dummy \
-          telegram-downloader-test python -m pytest tests/ -v --cov=src --cov-report=term-missing
-        
     - name: Cleanup Docker images
       if: always()
       run: |

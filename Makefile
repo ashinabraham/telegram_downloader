@@ -151,7 +151,7 @@ docker-clean:
 # Pipeline Commands
 # =============================================================================
 
-pipeline: install format-check lint test-coverage docker-build docker-test
+pipeline: install format-check lint test-coverage docker-build
 	@echo ""
 	@echo "🎉 Full pipeline completed successfully!"
 	@echo "✅ Your code is ready to push to GitHub!"
