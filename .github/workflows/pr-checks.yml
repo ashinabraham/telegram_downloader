@@ -1,0 +1,35 @@
+name: 🔍 PR Quick Checks
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  quick-checks:
+    runs-on: ubuntu-latest
+    env:
+      API_ID: 1234
+      API_HASH: dummy
+      BOT_TOKEN: dummy
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Run fast pipeline
+      run: |
+        echo "⚡ Running fast pipeline for PR..."
+        make fast-pipeline
+        
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false 

@@ -26,20 +26,19 @@ jobs:
         
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        echo "📦 Installing project dependencies..."
+        make install
         
     - name: Run linting checks
       run: |
-        echo "🔍 Running flake8 linting..."
-        python -m flake8 src/ --max-line-length=120 --ignore=E501,W503
-        echo "🎨 Running black formatting check..."
-        python -m black --check src/ tests/ main.py run_tests.py
+        echo "🔍 Running linting checks..."
+        make format-check
+        make lint
         
     - name: Run tests with coverage
       run: |
-        echo "🧪 Running pytest with coverage..."
-        python -m pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=xml
+        echo "🧪 Running tests with coverage..."
+        make test-coverage
         
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
@@ -49,19 +48,19 @@ jobs:
         name: codecov-umbrella
         fail_ci_if_error: false
         
-    - name: Test Docker build
+    - name: Test Docker builds
       run: |
-        echo "🐳 Testing Docker build..."
-        docker build -t telegram-downloader-test .
-        echo "✅ Docker build successful!"
-        
-    - name: Test Alpine Docker build
-      run: |
-        echo "🏔️ Testing Alpine Docker build..."
-        docker build -t telegram-downloader-alpine -f Dockerfile.alpine .
-        echo "✅ Alpine Docker build successful!"
+        echo "🐳 Testing Docker builds..."
+        make docker-build
+        make docker-build-alpine
         
     - name: Run tests in Docker container
       run: |
         echo "🧪 Running tests in Docker container..."
-        docker run --rm telegram-downloader-test python -m pytest tests/ -v --cov=src --cov-report=term-missing 
+        make docker-test
+        
+    - name: Cleanup Docker images
+      if: always()
+      run: |
+        echo "🧹 Cleaning up Docker images..."
+        make docker-clean 
