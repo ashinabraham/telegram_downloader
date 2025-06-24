@@ -35,6 +35,7 @@ help:
 	@echo ""
 	@echo "🧹 Maintenance:"
 	@echo "  clean            - Clean up generated files"
+	@echo "  clean-pycache    - Clean all Python cache files"
 	@echo "  clean-all        - Clean everything including Docker"
 
 # Python and pip commands
@@ -133,7 +134,11 @@ docker-build-alpine:
 
 docker-test:
 	@echo "🧪 Running tests in Docker container..."
-	docker run --rm telegram-downloader $(PYTHON) -m pytest $(TEST_DIR)/ -v --cov=$(SRC_DIR) --cov-report=term-missing
+	docker run --rm \
+		-e API_ID=1234 \
+		-e API_HASH=dummy \
+		-e BOT_TOKEN=dummy \
+		telegram-downloader $(PYTHON) -m pytest $(TEST_DIR)/ -v --cov=$(SRC_DIR) --cov-report=term-missing
 	@echo "✅ Docker tests completed!"
 
 docker-clean:
@@ -170,6 +175,14 @@ clean:
 	-find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 	-find . -type f -name "*.pyc" -delete 2>/dev/null || true
 	@echo "✅ Cleanup completed!"
+
+clean-pycache:
+	@echo "🧹 Cleaning all Python cache files..."
+	-find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+	-find . -type f -name "*.pyc" -delete 2>/dev/null || true
+	-find . -type f -name "*.pyo" -delete 2>/dev/null || true
+	-find . -type f -name "*.pyd" -delete 2>/dev/null || true
+	@echo "✅ Python cache cleanup completed!"
 
 clean-all: clean docker-clean
 	@echo "🧹 Full cleanup completed!"

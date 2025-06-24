@@ -170,7 +170,7 @@ run_pipeline() {
         
         if command_exists docker; then
             run_command "docker build -t telegram-downloader-test ." "Building Docker image"
-            run_command "docker run --rm telegram-downloader-test python3 -m pytest tests/ -v --cov=src --cov-report=term-missing" "Running tests in Docker"
+            run_command "docker run --rm -e API_ID=1234 -e API_HASH=dummy -e BOT_TOKEN=dummy telegram-downloader-test python3 -m pytest tests/ -v --cov=src --cov-report=term-missing" "Running tests in Docker"
             run_command "docker rmi telegram-downloader-test" "Cleaning up Docker image"
         else
             print_warning "Docker not found, skipping Docker operations"
