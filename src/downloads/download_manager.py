@@ -281,8 +281,10 @@ class DownloadManager:
     ) -> DownloadTask:
         """Add download to queue and start if possible with optimized concurrency."""
         logger.info(f"Queueing download for user {user_id} to path: {save_path}")
-        logger.info(f"User state chat_id for {user_id}: {user_state.get_chat_id(user_id)}")
-        
+        logger.info(
+            f"User state chat_id for {user_id}: {user_state.get_chat_id(user_id)}"
+        )
+
         task = DownloadTask(user_id, file_message, save_path)
         self.download_queue[user_id] = self.download_queue.get(user_id, []) + [task]
 

@@ -11,10 +11,8 @@ import os
 # Configure logging to display in console
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout)
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
 )
 
 # Import all modules to register handlers
@@ -30,12 +28,20 @@ logger = logging.getLogger(__name__)
 async def main():
     """Main function to start the bot."""
     logger.info("Starting Telegram File Downloader Bot...")
-    
+
     # Debug: Log environment variables (without sensitive data)
-    logger.info(f"Environment check - API_ID: {'SET' if os.getenv('API_ID') else 'NOT SET'}")
-    logger.info(f"Environment check - API_HASH: {'SET' if os.getenv('API_HASH') else 'NOT SET'}")
-    logger.info(f"Environment check - BOT_TOKEN: {'SET' if os.getenv('BOT_TOKEN') else 'NOT SET'}")
-    logger.info(f"Environment check - ALLOWED_USERS: {'SET' if os.getenv('ALLOWED_USERS') else 'NOT SET'}")
+    logger.info(
+        f"Environment check - API_ID: {'SET' if os.getenv('API_ID') else 'NOT SET'}"
+    )
+    logger.info(
+        f"Environment check - API_HASH: {'SET' if os.getenv('API_HASH') else 'NOT SET'}"
+    )
+    logger.info(
+        f"Environment check - BOT_TOKEN: {'SET' if os.getenv('BOT_TOKEN') else 'NOT SET'}"
+    )
+    logger.info(
+        f"Environment check - ALLOWED_USERS: {'SET' if os.getenv('ALLOWED_USERS') else 'NOT SET'}"
+    )
 
     try:
         # Start the Telegram client
