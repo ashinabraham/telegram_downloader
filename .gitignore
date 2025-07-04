@@ -11,6 +11,7 @@ __pycache__/
 build/
 develop-eggs/
 dist/
+downloads/
 eggs/
 .eggs/
 lib/
@@ -177,6 +178,7 @@ bot_*.log
 
 # Downloaded files and directories
 saved_files/
+downloads/
 sessions/
 
 # Temporary files
