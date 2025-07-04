@@ -20,8 +20,8 @@ logger = logging.getLogger(__name__)
 # Get configuration
 config = get_config()
 
-# Initialize user state
-user_state = UserState()
+# Import the global user state instance
+from ..core.user_state import user_state
 
 
 class DownloadTask:
@@ -140,9 +140,16 @@ class DownloadManager:
 
             # Get chat_id from user_states
             chat_id = user_state.get_chat_id(task.user_id)
+            logger.info(f"Download task for user {task.user_id}, chat_id: {chat_id}")
             if not chat_id:
                 logger.error(f"No chat_id found for user {task.user_id}")
-                return
+                # Try to get chat_id from the file message
+                try:
+                    chat_id = task.file_message.chat_id
+                    logger.info(f"Using chat_id from file message: {chat_id}")
+                except Exception as e:
+                    logger.error(f"Could not get chat_id from file message: {e}")
+                    return
 
             # Create progress message
             progress_text = f"📥 Starting download...\nFile: {os.path.basename(task.save_path)}\nSize: {task.total_bytes / (1024 * 1024):.1f} MB"
@@ -273,6 +280,9 @@ class DownloadManager:
         self, user_id: str, file_message, save_path: str
     ) -> DownloadTask:
         """Add download to queue and start if possible with optimized concurrency."""
+        logger.info(f"Queueing download for user {user_id} to path: {save_path}")
+        logger.info(f"User state chat_id for {user_id}: {user_state.get_chat_id(user_id)}")
+        
         task = DownloadTask(user_id, file_message, save_path)
         self.download_queue[user_id] = self.download_queue.get(user_id, []) + [task]
 

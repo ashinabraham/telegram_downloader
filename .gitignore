@@ -177,7 +177,6 @@ bot_*.log
 
 # Downloaded files and directories
 saved_files/
-downloads/
 sessions/
 
 # Temporary files
