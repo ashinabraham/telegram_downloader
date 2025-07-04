@@ -8,13 +8,16 @@ import time
 import logging
 from telethon import events, Button
 
-from ..core.config import config
+from ..core.config import get_config
 from ..core.user_state import user_state
 from ..bot.client import client, is_logged_in
 from ..utils.keyboard_utils import create_help_keyboard, create_status_keyboard
 from ..downloads.download_manager import download_manager
 
 logger = logging.getLogger(__name__)
+
+# Get configuration
+config = get_config()
 
 
 @client.on(events.NewMessage(pattern="/start"))
