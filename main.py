@@ -7,7 +7,6 @@ import asyncio
 import logging
 
 # Import all modules to register handlers
-from src.core.config import config
 from src.core.user_state import user_state
 from src.bot.client import client, start_client, run_until_disconnected, stop_client
 from src.handlers.command_handlers import start_handler, help_handler, status_handler
