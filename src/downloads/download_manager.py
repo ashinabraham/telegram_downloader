@@ -13,15 +13,12 @@ from typing import Dict, List, Optional
 from telethon.errors import MessageNotModifiedError
 
 from ..core.config import get_config
-from ..core.user_state import UserState
+from ..core.user_state import user_state
 
 logger = logging.getLogger(__name__)
 
 # Get configuration
 config = get_config()
-
-# Import the global user state instance
-from ..core.user_state import user_state
 
 
 class DownloadTask:
