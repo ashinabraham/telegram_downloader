@@ -1,0 +1,61 @@
+name: 🧪 Code Quality & Testing Pipeline
+
+on:
+  push:
+    branches: [ main, develop, feature/*, bugfix/*, hotfix/* ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      API_ID: 1234
+      API_HASH: dummy
+      BOT_TOKEN: dummy
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        echo "📦 Installing project dependencies..."
+        make install
+        
+    - name: Run linting checks
+      run: |
+        echo "🔍 Running linting checks..."
+        make format-check
+        make lint
+        
+    - name: Run tests with coverage
+      run: |
+        echo "🧪 Running tests with coverage..."
+        make test-coverage
+        
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+        
+    - name: Test Docker builds
+      run: |
+        echo "🐳 Testing Docker builds..."
+        make docker-build
+        make docker-build-alpine
+        
+    - name: Cleanup Docker images
+      if: always()
+      run: |
+        echo "🧹 Cleaning up Docker images..."
+        make docker-clean 

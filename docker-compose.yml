@@ -1,51 +1,18 @@
-version: '3.8'
-
 services:
   telegram-bot:
     build: .
     restart: unless-stopped
+    user: "1000:1000"  # Run as host user to avoid permission issues
     environment:
       - API_ID=${API_ID}
       - API_HASH=${API_HASH}
       - BOT_TOKEN=${BOT_TOKEN}
       - ALLOWED_USERS=${ALLOWED_USERS}
     volumes:
-      - ./downloads:/app/downloads
-      - ./saved_files:/app/saved_files
-      - ./sessions:/app/sessions
-    networks:
-      - bot-network
+      - ${SAVED_FILES_PATH}:/app/saved_files
     healthcheck:
       test: ["CMD", "python", "-c", "import os; print('Bot is running')"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  # Optional: Add a simple web interface for monitoring (future enhancement)
-  # web-interface:
-  #   image: nginx:alpine
-  #   container_name: bot-web-interface
-  #   ports:
-  #     - "8080:80"
-  #   volumes:
-  #     - ./web:/usr/share/nginx/html
-  #   depends_on:
-  #     - telegram-bot
-  #   networks:
-  #     - bot-network
-
-networks:
-  bot-network:
-    driver: bridge
-
-volumes:
-  downloads:
-    driver: local
-  sessions:
-    driver: local 
