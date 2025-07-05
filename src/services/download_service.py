@@ -12,6 +12,7 @@ from pathlib import Path
 
 from ..core.config import get_config
 from ..download_manager.manager import DownloadManager, DownloadTask
+from ..utils.path_utils import path_manager
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +91,11 @@ class DownloadService:
     def _validate_save_path(self, save_path: str) -> bool:
         """Validate save path with business rules."""
         try:
+            # Check if path is within the allowed base download directory
+            if not path_manager._is_path_within_bounds(save_path):
+                logger.error(f"Save path {save_path} is outside allowed bounds")
+                return False
+
             # Check if path is absolute or relative
             path = Path(save_path)
 

@@ -45,7 +45,8 @@ class Config:
 
         # Bot settings
         self.session_name = "downloader_bot_session"
-        self.base_download_dir = "."
+        self.root_download_path = os.getenv("ROOT_DOWNLOAD_PATH", "/app/downloads")
+        self.base_download_dir = self.root_download_path
 
         # Download settings
         self.download_chunk_size = 8 * 1024 * 1024  # 8MB chunks (increased from 1MB)

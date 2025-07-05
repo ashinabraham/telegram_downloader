@@ -8,8 +8,17 @@ services:
       - API_HASH=${API_HASH}
       - BOT_TOKEN=${BOT_TOKEN}
       - ALLOWED_USERS=${ALLOWED_USERS}
+      - ROOT_DOWNLOAD_PATH=/app/downloads
     volumes:
-      - ${SAVED_FILES_PATH}:/app/saved_files
+      - ${SAVED_FILES_PATH}:/app/downloads
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'  # Limit to 1 CPU core
+          memory: 512M  # Limit to 512MB RAM
+        reservations:
+          cpus: '0.25'  # Reserve 0.25 CPU core
+          memory: 128M  # Reserve 128MB RAM
     healthcheck:
       test: ["CMD", "python", "-c", "import os; print('Bot is running')"]
       interval: 30s

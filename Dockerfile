@@ -19,9 +19,5 @@ RUN pip install -e .
 # Create directories for downloads and saved files
 RUN mkdir -p downloads
 
-# Create user
-RUN adduser -D botuser && chown -R botuser:botuser /app
-USER botuser
-
 # Run the bot using the installed package
 CMD ["telegram-downloader-bot"] 

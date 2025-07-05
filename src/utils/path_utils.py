@@ -17,6 +17,21 @@ class PathManager:
         # Path encoding system to avoid callback data size limits
         self.path_encodings = {}
         self.path_counter = 0
+        # Get the base download directory from environment variable directly
+        self.base_download_dir = os.getenv("ROOT_DOWNLOAD_PATH", "/app/downloads")
+
+    def _is_path_within_bounds(self, path: str) -> bool:
+        """Check if a path is within the allowed base download directory."""
+        try:
+            # Resolve both paths to absolute paths
+            abs_path = os.path.abspath(path)
+            abs_base = os.path.abspath(self.base_download_dir)
+            
+            # Check if the path is within the base directory
+            return abs_path == abs_base or abs_path.startswith(abs_base + os.sep)
+        except Exception as e:
+            logger.error(f"Error checking path bounds: {e}")
+            return False
 
     def encode_path(self, path: str) -> str:
         """Encode a path to a short identifier."""
@@ -30,13 +45,17 @@ class PathManager:
         for path, code in self.path_encodings.items():
             if code == encoded:
                 return path
-        return "."
+        return self.base_download_dir
 
     async def get_directory_options(
         self, current_path: str = ""
     ) -> List[Tuple[str, str]]:
         """Get directory options for the current path."""
-        full_path = current_path if current_path else "."
+        # Ensure current_path is within bounds
+        if not self._is_path_within_bounds(current_path):
+            current_path = self.base_download_dir
+            
+        full_path = current_path if current_path else self.base_download_dir
         if not os.path.exists(full_path):
             return []
 
@@ -76,11 +95,19 @@ class PathManager:
 
     def join_paths(self, *paths) -> str:
         """Join multiple path components safely."""
-        return os.path.join(*paths)
+        joined_path = os.path.join(*paths)
+        # Ensure the joined path is within bounds
+        if not self._is_path_within_bounds(joined_path):
+            logger.warning(f"Path {joined_path} is outside allowed bounds, using base directory")
+            return self.base_download_dir
+        return joined_path
 
     def is_directory_writable(self, directory: str) -> bool:
         """Check if a directory is writable."""
         try:
+            # Ensure directory is within bounds
+            if not self._is_path_within_bounds(directory):
+                return False
             return os.access(directory, os.W_OK)
         except (OSError, PermissionError):
             return False
@@ -88,6 +115,10 @@ class PathManager:
     def ensure_directory_exists(self, directory: str) -> bool:
         """Ensure a directory exists, create if necessary."""
         try:
+            # Ensure directory is within bounds
+            if not self._is_path_within_bounds(directory):
+                logger.error(f"Cannot create directory {directory} - outside allowed bounds")
+                return False
             os.makedirs(directory, exist_ok=True)
             return True
         except (OSError, PermissionError) as e:
@@ -99,11 +130,18 @@ class PathManager:
         parent = os.path.dirname(path)
         # Handle root path and cases where parent is the same as path
         if not parent or parent == path or parent == "/":
-            return "."
+            return self.base_download_dir
+        # Ensure parent is within bounds
+        if not self._is_path_within_bounds(parent):
+            return self.base_download_dir
         return parent
 
     def is_safe_directory(self, path: str) -> bool:
-        """Check if a directory is safe to access (not a system directory)."""
+        """Check if a directory is safe to access (within bounds and not a system directory)."""
+        # First check if path is within bounds
+        if not self._is_path_within_bounds(path):
+            return False
+            
         # List of potentially dangerous directories
         dangerous_dirs = {
             "/",
