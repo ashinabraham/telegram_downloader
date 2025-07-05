@@ -12,7 +12,7 @@ from ..core.config import config
 from ..core.user_state import user_state
 from ..bot.client import client, is_logged_in
 from ..utils.keyboard_utils import create_help_keyboard, create_status_keyboard
-from ..downloads.download_manager import download_manager
+from ..services.download_service import download_service
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +74,7 @@ async def status_handler(event):
     if not user_state.is_authorized(user_id, config.allowed_users):
         return
 
-    user_downloads = download_manager.get_user_downloads(user_id)
+    user_downloads = download_service.get_user_downloads(user_id)
     if not user_downloads:
         await event.respond(
             "📊 **Download Manager**\n\n"

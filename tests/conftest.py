@@ -60,7 +60,7 @@ def mock_path_manager():
 @pytest.fixture
 def mock_download_manager():
     """Mock download manager for testing."""
-    from src.downloads.download_manager import DownloadManager
+    from src.download_manager import DownloadManager
 
     return DownloadManager()
 
@@ -162,7 +162,7 @@ def test_env_vars():
 @pytest.fixture
 def mock_download_task():
     """Mock download task for testing."""
-    from src.downloads.download_manager import DownloadTask
+    from src.download_manager import DownloadTask
 
     task = DownloadTask(
         user_id="123456", file_message=Mock(), save_path="/test/path/file.pdf"

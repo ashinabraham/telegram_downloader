@@ -24,9 +24,7 @@ config = get_config()
 class DownloadTask:
     """Represents a download task with progress tracking."""
 
-    def __init__(
-        self, user_id: str, file_message, save_path: str
-    ):
+    def __init__(self, user_id: str, file_message, save_path: str):
         self.user_id = user_id
         self.file_message = file_message
         self.save_path = save_path
@@ -120,11 +118,14 @@ class DownloadManager:
 
             # Send simple downloading notification
             filename = os.path.basename(task.save_path)
-            file_size_mb = task.total_bytes / (1024 * 1024) if task.total_bytes > 0 else 0
+            file_size_mb = (
+                task.total_bytes / (1024 * 1024) if task.total_bytes > 0 else 0
+            )
 
             notification_text = f"📥 **Download Started!**\n\n📁 **File:** {filename}\n📊 **Size:** {file_size_mb:.1f} MB\n\nUse `/status` to check download progress."
 
             from ..bot.client import client
+
             await client.send_message(chat_id, notification_text)
 
             # Download to .part file
@@ -171,9 +172,7 @@ class DownloadManager:
                 except Exception as e:
                     logger.error(f"Failed to send completion notification: {e}")
 
-                logger.info(
-                    f"Download completed: {final_path} in {total_time:.1f}s"
-                )
+                logger.info(f"Download completed: {final_path} in {total_time:.1f}s")
             else:
                 task.status = "failed"
                 task.error = "Download failed"

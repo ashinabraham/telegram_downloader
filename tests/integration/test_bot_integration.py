@@ -13,7 +13,7 @@ import os
 from src.core.config import Config
 from src.core.user_state import UserState
 from src.bot.client import client
-from src.downloads.download_manager import DownloadManager
+from src.download_manager import DownloadManager
 from src.utils.path_utils import PathManager
 
 

@@ -5,49 +5,41 @@ Unit tests for the download manager module.
 import pytest
 import time
 from unittest.mock import Mock, AsyncMock, patch
-from src.downloads.download_manager import DownloadTask, DownloadManager
+from src.download_manager import DownloadTask, DownloadManager
 
 
 class TestDownloadTask:
-    """Test cases for the DownloadTask class."""
+    """Test cases for DownloadTask class."""
 
     def test_download_task_initialization(self):
         """Test DownloadTask initialization."""
+        user_id = "123456"
         file_message = Mock()
-        task = DownloadTask("123456", file_message, "/test/path/file.txt")
+        save_path = "/test/path/file.txt"
 
-        assert task.user_id == "123456"
+        task = DownloadTask(user_id, file_message, save_path)
+
+        assert task.user_id == user_id
         assert task.file_message == file_message
-        assert task.save_path == "/test/path/file.txt"
-        assert task.progress_message is None
-        assert task.start_time > 0
+        assert task.save_path == save_path
+        assert task.status == "queued"
         assert task.downloaded_bytes == 0
         assert task.total_bytes == 0
-        assert task.status == "queued"
+        assert task.start_time > 0
         assert task.error is None
-        assert task.last_progress_update == 0
-
-    def test_download_task_with_progress_message(self):
-        """Test DownloadTask initialization with progress message."""
-        file_message = Mock()
-        progress_message = Mock()
-        task = DownloadTask(
-            "123456", file_message, "/test/path/file.txt", progress_message
-        )
-
-        assert task.progress_message == progress_message
+        assert hasattr(task, "progress_lock")
 
     def test_download_task_thread_safety(self):
-        """Test that DownloadTask has thread safety with progress_lock."""
-        file_message = Mock()
-        task = DownloadTask("123456", file_message, "/test/path/file.txt")
+        """Test DownloadTask thread safety attributes."""
+        task = DownloadTask("123456", Mock(), "/test/path/file.txt")
 
+        # Test that thread safety attributes exist
         assert hasattr(task, "progress_lock")
         assert task.progress_lock is not None
 
 
 class TestDownloadManager:
-    """Test cases for the DownloadManager class."""
+    """Test cases for DownloadManager class."""
 
     def test_download_manager_initialization(self):
         """Test DownloadManager initialization."""
@@ -60,53 +52,55 @@ class TestDownloadManager:
 
     @pytest.mark.asyncio
     async def test_queue_download_new_user(self):
-        """Test queuing download for a new user."""
+        """Test queuing download for new user."""
         manager = DownloadManager()
+        user_id = "123456"
         file_message = Mock()
+        save_path = "/test/path/file.txt"
 
-        task = await manager.queue_download(
-            "123456", file_message, "/test/path/file.txt"
-        )
+        task = await manager.queue_download(user_id, file_message, save_path)
 
-        assert task.user_id == "123456"
+        assert task.user_id == user_id
         assert task.file_message == file_message
-        assert task.save_path == "/test/path/file.txt"
+        assert task.save_path == save_path
         assert task.status == "queued"
-        assert "123456" in manager.download_queue
-        assert len(manager.download_queue["123456"]) == 1
+        assert user_id in manager.download_queue
+        assert len(manager.download_queue[user_id]) == 1
 
     @pytest.mark.asyncio
     async def test_queue_download_existing_user(self):
-        """Test queuing download for an existing user."""
+        """Test queuing download for existing user."""
         manager = DownloadManager()
+        user_id = "123456"
         file_message1 = Mock()
         file_message2 = Mock()
 
         task1 = await manager.queue_download(
-            "123456", file_message1, "/test/path/file1.txt"
+            user_id, file_message1, "/test/path/file1.txt"
         )
         task2 = await manager.queue_download(
-            "123456", file_message2, "/test/path/file2.txt"
+            user_id, file_message2, "/test/path/file2.txt"
         )
 
-        assert len(manager.download_queue["123456"]) == 2
-        assert task1 in manager.download_queue["123456"]
-        assert task2 in manager.download_queue["123456"]
+        assert len(manager.download_queue[user_id]) == 2
+        assert task1 in manager.download_queue[user_id]
+        assert task2 in manager.download_queue[user_id]
 
     @pytest.mark.asyncio
     async def test_get_user_downloads_existing_user(self):
-        """Test getting downloads for an existing user."""
+        """Test getting downloads for existing user."""
         manager = DownloadManager()
+        user_id = "123456"
         file_message = Mock()
 
-        await manager.queue_download("123456", file_message, "/test/path/file.txt")
-        downloads = manager.get_user_downloads("123456")
+        await manager.queue_download(user_id, file_message, "/test/path/file.txt")
+        downloads = manager.get_user_downloads(user_id)
 
         assert len(downloads) == 1
-        assert downloads[0].user_id == "123456"
+        assert downloads[0].user_id == user_id
 
     def test_get_user_downloads_nonexistent_user(self):
-        """Test getting downloads for a nonexistent user."""
+        """Test getting downloads for nonexistent user."""
         manager = DownloadManager()
         downloads = manager.get_user_downloads("nonexistent")
 
@@ -114,7 +108,7 @@ class TestDownloadManager:
 
     @pytest.mark.asyncio
     async def test_clear_completed_downloads_with_completed(self):
-        """Test clearing completed downloads."""
+        """Test clearing completed downloads when they exist."""
         manager = DownloadManager()
         file_message1 = Mock()
         file_message2 = Mock()
@@ -156,7 +150,7 @@ class TestDownloadManager:
 
     @pytest.mark.asyncio
     async def test_retry_failed_downloads_with_failed(self):
-        """Test retrying failed downloads."""
+        """Test retrying failed downloads when they exist."""
         manager = DownloadManager()
         file_message1 = Mock()
         file_message2 = Mock()
@@ -207,8 +201,8 @@ class TestDownloadManager:
         manager = DownloadManager()
         mock_client.send_message = AsyncMock()
 
-        # Set up user state with chat_id - use the one from download_manager
-        from src.downloads.download_manager import user_state
+        # Set up user state with chat_id
+        from src.core.user_state import user_state
 
         user_state.set_chat_id("123456", 123456789)
 
@@ -225,8 +219,8 @@ class TestDownloadManager:
         manager = DownloadManager()
         mock_client.send_message = AsyncMock()
 
-        # Set up user state with chat_id - use the one from download_manager
-        from src.downloads.download_manager import user_state
+        # Set up user state with chat_id
+        from src.core.user_state import user_state
 
         user_state.set_chat_id("123456", 123456789)
 
@@ -248,7 +242,7 @@ class TestDownloadManager:
         mock_client.send_message = AsyncMock()
 
         # Clear user state to ensure no chat_id is set
-        from src.downloads.download_manager import user_state
+        from src.core.user_state import user_state
 
         user_state.clear_user_state("123456")
 
@@ -266,8 +260,8 @@ class TestDownloadManager:
         manager = DownloadManager()
         mock_client.send_message.side_effect = Exception("Network error")
 
-        # Set up user state with chat_id - use the one from download_manager
-        from src.downloads.download_manager import user_state
+        # Set up user state with chat_id
+        from src.core.user_state import user_state
 
         user_state.set_chat_id("123456", 123456789)
 
@@ -278,87 +272,19 @@ class TestDownloadManager:
 
     @pytest.mark.asyncio
     @patch("src.bot.client.client")
-    async def test_update_progress_message_success(self, mock_client):
-        """Test successful progress message update."""
-        manager = DownloadManager()
-        task = DownloadTask("123456", Mock(), "/test/path/file.txt")
-        task.progress_message = Mock()
-        task.progress_message.edit = AsyncMock()
-
-        await manager.update_progress_message(task, "Progress: 50%")
-
-        task.progress_message.edit.assert_called_once_with("Progress: 50%")
-
-    @pytest.mark.asyncio
-    @patch("src.bot.client.client")
-    async def test_update_progress_message_message_not_modified(self, mock_client):
-        """Test progress message update with MessageNotModifiedError."""
-        from telethon.errors import MessageNotModifiedError
-
-        manager = DownloadManager()
-        task = DownloadTask("123456", Mock(), "/test/path/file.txt")
-        task.progress_message = Mock()
-        task.progress_message.edit = AsyncMock(
-            side_effect=MessageNotModifiedError(request=Mock())
-        )
-
-        # Should not raise exception
-        await manager.update_progress_message(task, "Progress: 50%")
-
-    @pytest.mark.asyncio
-    @patch("src.bot.client.client")
-    async def test_update_progress_message_rate_limit(self, mock_client):
-        """Test progress message update with rate limit error."""
-        manager = DownloadManager()
-        task = DownloadTask("123456", Mock(), "/test/path/file.txt")
-        task.progress_message = Mock()
-        task.progress_message.edit = AsyncMock(
-            side_effect=Exception("wait of 30 seconds is required")
-        )
-
-        # Should not raise exception
-        await manager.update_progress_message(task, "Progress: 50%")
-
-    @pytest.mark.asyncio
-    @patch("src.bot.client.client")
-    async def test_update_progress_message_no_progress_message(self, mock_client):
-        """Test progress message update when no progress message exists."""
-        manager = DownloadManager()
-        task = DownloadTask("123456", Mock(), "/test/path/file.txt")
-        task.progress_message = None
-
-        # Should not raise exception
-        await manager.update_progress_message(task, "Progress: 50%")
-
-    @pytest.mark.asyncio
-    @patch("src.bot.client.client")
-    async def test_update_progress_message_throttling(self, mock_client):
-        """Test that progress message updates are throttled."""
-        manager = DownloadManager()
-        task = DownloadTask("123456", Mock(), "/test/path/file.txt")
-        task.progress_message = Mock()
-        task.progress_message.edit = AsyncMock()
-        task.last_progress_update = time.time()
-
-        await manager.update_progress_message(task, "Progress: 50%")
-
-        # Should not call edit due to throttling
-        task.progress_message.edit.assert_not_called()
-
-    @pytest.mark.asyncio
-    @patch("src.bot.client.client")
     async def test_download_with_progress_success(self, mock_client):
         """Test successful download with progress."""
         manager = DownloadManager()
         file_message = Mock()
         file_message.media.document.size = 1024000
+        file_message.chat_id = 123456789
 
         task = DownloadTask("123456", file_message, "/test/path/file.txt")
-        mock_client.send_message = AsyncMock(return_value=Mock())
+        mock_client.send_message = AsyncMock()
         mock_client.download_media = AsyncMock(return_value="/test/path/file.txt")
 
-        # Set up user state with chat_id - use the one from download_manager
-        from src.downloads.download_manager import user_state
+        # Set up user state with chat_id
+        from src.core.user_state import user_state
 
         user_state.set_chat_id("123456", 123456789)
 
@@ -374,13 +300,14 @@ class TestDownloadManager:
         manager = DownloadManager()
         file_message = Mock()
         file_message.media.document.size = 1024000
+        file_message.chat_id = 123456789
 
         task = DownloadTask("123456", file_message, "/test/path/file.txt")
-        mock_client.send_message = AsyncMock(return_value=Mock())
+        mock_client.send_message = AsyncMock()
         mock_client.download_media = AsyncMock(return_value=None)
 
-        # Set up user state with chat_id - use the one from download_manager
-        from src.downloads.download_manager import user_state
+        # Set up user state with chat_id
+        from src.core.user_state import user_state
 
         user_state.set_chat_id("123456", 123456789)
 
@@ -396,13 +323,14 @@ class TestDownloadManager:
         manager = DownloadManager()
         file_message = Mock()
         file_message.media.document.size = 1024000
+        file_message.chat_id = 123456789
 
         task = DownloadTask("123456", file_message, "/test/path/file.txt")
-        mock_client.send_message = AsyncMock(return_value=Mock())
+        mock_client.send_message = AsyncMock()
         mock_client.download_media = AsyncMock(side_effect=Exception("Network error"))
 
-        # Set up user state with chat_id - use the one from download_manager
-        from src.downloads.download_manager import user_state
+        # Set up user state with chat_id
+        from src.core.user_state import user_state
 
         user_state.set_chat_id("123456", 123456789)
 
@@ -418,6 +346,7 @@ class TestDownloadManager:
         manager = DownloadManager()
         file_message = Mock()
         file_message.media.document.size = 1024000
+        file_message.chat_id = 123456789
 
         task = DownloadTask("123456", file_message, "/test/path/file.txt")
 

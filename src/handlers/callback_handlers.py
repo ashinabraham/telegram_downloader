@@ -1,21 +1,19 @@
 """
-Callback handlers module for the Telegram File Downloader Bot.
-Handles inline button callbacks for directory navigation, help menus, and status management.
+Callback handlers for the Telegram File Downloader Bot.
+Handles button callbacks and interactive elements.
 """
 
-import os
-import time
-import asyncio
 import logging
+import time
 from pathlib import Path
 from typing import Optional
 from telethon import events, Button
 from telethon.errors import MessageNotModifiedError
 
-from ..core.config import config
 from ..core.user_state import user_state
+from ..core.config import config
 from ..bot.client import client
-from ..utils.path_utils import path_manager
+from ..utils.path_utils import PathManager
 from ..utils.keyboard_utils import (
     create_directory_keyboard,
     create_help_keyboard,
@@ -23,9 +21,13 @@ from ..utils.keyboard_utils import (
     create_status_keyboard,
     create_back_button,
 )
-from ..downloads.download_manager import download_manager
+from ..services.download_service import DownloadService
 
 logger = logging.getLogger(__name__)
+
+# Initialize services
+path_manager = PathManager()
+download_service = DownloadService()
 
 
 @client.on(events.CallbackQuery())
@@ -210,13 +212,13 @@ Choose a category below to learn more about specific features:
     except Exception as e:
         logger.error(f"Error in callback handler: {e}")
         error_msg = f"❌ **Bot Error!**\n\nAn error occurred while processing your request.\n\n**Error:** {str(e)}\n\nPlease try again or use /start to restart."
-        await download_manager.send_notification(user_id, error_msg)
+        await download_service.send_notification(user_id, error_msg)
         await event.answer("An error occurred. Please try again.")
 
 
 async def handle_status_refresh(event, user_id: str):
     """Handle status refresh callback."""
-    user_downloads = download_manager.get_user_downloads(user_id)
+    user_downloads = download_service.get_user_downloads(user_id)
     if not user_downloads:
         await event.edit(
             "📊 **Download Manager**\n\n"
@@ -295,7 +297,7 @@ async def handle_status_refresh(event, user_id: str):
 
 async def handle_show_all_downloads(event, user_id: str):
     """Handle show all downloads callback."""
-    user_downloads = download_manager.get_user_downloads(user_id)
+    user_downloads = download_service.get_user_downloads(user_id)
     if not user_downloads:
         await event.edit("No downloads found.")
         return
@@ -341,7 +343,7 @@ async def handle_show_all_downloads(event, user_id: str):
 
 async def handle_clear_completed(event, user_id: str):
     """Handle clear completed downloads callback."""
-    cleared_count = download_manager.clear_completed_downloads(user_id)
+    cleared_count = download_service.clear_completed_downloads(user_id)
     if cleared_count > 0:
         await event.answer(f"✅ {cleared_count} completed downloads cleared!")
         await event.edit(
@@ -355,7 +357,7 @@ async def handle_clear_completed(event, user_id: str):
 
 async def handle_retry_failed(event, user_id: str):
     """Handle retry failed downloads callback."""
-    retry_count = download_manager.retry_failed_downloads(user_id)
+    retry_count = download_service.retry_failed_downloads(user_id)
 
     if retry_count > 0:
         await event.answer(f"🔄 Retrying {retry_count} failed downloads...")
@@ -374,7 +376,7 @@ async def download_file(event, user_id: str, filename: Optional[str] = None):
         file_message = user_state.get_user_data(user_id, "file_message")
         if not file_message:
             error_msg = "❌ **Error!**\n\nNo file message found. Please try sending the file again."
-            await download_manager.send_notification(user_id, error_msg)
+            await download_service.send_notification(user_id, error_msg)
             await event.respond("❌ Error: No file message found")
             user_state.set_state(user_id, "logged_in", chat_id=event.chat_id)
             return
@@ -388,7 +390,7 @@ async def download_file(event, user_id: str, filename: Optional[str] = None):
         # Check if directory exists and is writable
         if not path_manager.ensure_directory_exists(save_dir):
             error_msg = f"❌ **Permission Error!**\n\nCannot create directory: {save_dir}\n\n**Error:** Permission denied\n\nPlease choose a different location or check permissions."
-            await download_manager.send_notification(user_id, error_msg)
+            await download_service.send_notification(user_id, error_msg)
             await event.respond(
                 f"❌ Permission denied: Cannot create directory {save_dir}"
             )
@@ -396,7 +398,7 @@ async def download_file(event, user_id: str, filename: Optional[str] = None):
             return
         elif not path_manager.is_directory_writable(save_dir):
             error_msg = f"❌ **Permission Error!**\n\nCannot write to directory: {save_dir}\n\n**Error:** Directory is read-only\n\nPlease choose a different location."
-            await download_manager.send_notification(user_id, error_msg)
+            await download_service.send_notification(user_id, error_msg)
             await event.respond(
                 f"❌ Permission denied: Cannot write to directory {save_dir}"
             )
@@ -456,7 +458,7 @@ async def download_file(event, user_id: str, filename: Optional[str] = None):
         await event.respond(f"📥 Queuing download to: {save_path}")
 
         # Queue the download
-        task = await download_manager.queue_download(user_id, file_message, save_path)
+        await download_service.queue_download(user_id, file_message, save_path)
 
         # Reset user state but preserve chat_id
         user_state.set_state(user_id, "logged_in", chat_id=chat_id)
@@ -464,14 +466,14 @@ async def download_file(event, user_id: str, filename: Optional[str] = None):
     except PermissionError as e:
         logger.error(f"Permission error queuing download: {e}")
         error_msg = f"❌ **Permission Error!**\n\nCannot write to the selected directory.\n\n**Error:** {str(e)}\n\nPlease choose a different location."
-        await download_manager.send_notification(user_id, error_msg)
+        await download_service.send_notification(user_id, error_msg)
         await event.respond(
-            f"❌ Permission denied: Cannot write to the selected directory. Please choose a different location."
+            "❌ Permission denied: Cannot write to the selected directory. Please choose a different location."
         )
         user_state.set_state(user_id, "logged_in", chat_id=event.chat_id)
     except Exception as e:
         logger.error(f"Error queuing download: {e}")
         error_msg = f"❌ **Download Error!**\n\nFailed to queue download.\n\n**Error:** {str(e)}\n\nPlease try again or contact support."
-        await download_manager.send_notification(user_id, error_msg)
+        await download_service.send_notification(user_id, error_msg)
         await event.respond(f"❌ Error queuing download: {e}")
         user_state.set_state(user_id, "logged_in", chat_id=event.chat_id)

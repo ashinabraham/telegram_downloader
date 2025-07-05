@@ -12,7 +12,7 @@ from ..core.user_state import user_state
 from ..bot.client import client
 from ..utils.path_utils import path_manager
 from ..utils.keyboard_utils import create_directory_keyboard
-from ..downloads.download_manager import download_manager
+from ..services.download_service import download_service
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +76,7 @@ async def handle_phone_input(event, user_id: str):
     except Exception as e:
         logger.error(f"Failed to send code to {phone}: {e}")
         error_msg = f"❌ **Login Error!**\n\nFailed to send verification code to {phone}.\n\n**Error:** {str(e)}\n\nPlease try again with a valid phone number."
-        await download_manager.send_notification(user_id, error_msg)
+        await download_service.send_notification(user_id, error_msg)
         user_state.set_state(user_id, "awaiting_phone")
         await event.respond(
             f"Failed to send code: {e}. Please enter your phone number again:"
@@ -105,7 +105,7 @@ async def handle_code_input(event, user_id: str):
     except Exception as e:
         logger.error(f"Login failed for user {user_id}: {e}")
         error_msg = f"❌ **Login Error!**\n\nFailed to verify code for {phone}.\n\n**Error:** {str(e)}\n\nPlease try again with the correct code."
-        await download_manager.send_notification(user_id, error_msg)
+        await download_service.send_notification(user_id, error_msg)
         user_state.set_state(user_id, "awaiting_phone")
         await event.respond(f"Login failed: {e}. Please enter your phone number again:")
 
@@ -127,7 +127,7 @@ async def handle_2fa_input(event, user_id: str):
     except Exception as e:
         logger.error(f"2FA failed for user {user_id}: {e}")
         error_msg = f"❌ **2FA Error!**\n\nFailed to verify 2FA password.\n\n**Error:** {str(e)}\n\nPlease try again with the correct password."
-        await download_manager.send_notification(user_id, error_msg)
+        await download_service.send_notification(user_id, error_msg)
         user_state.set_state(user_id, "awaiting_phone")
         await event.respond(f"2FA failed: {e}. Please enter your phone number again:")
 
@@ -190,7 +190,7 @@ async def handle_folder_name_input(event, user_id: str):
 
     except PermissionError:
         error_msg = f"❌ **Permission Error!**\n\nCannot create folder: {safe_folder_name}\n\n**Error:** Permission denied\n\nPlease choose a different location or check permissions."
-        await download_manager.send_notification(user_id, error_msg)
+        await download_service.send_notification(user_id, error_msg)
         await event.respond(
             f"❌ Permission denied: Cannot create folder {safe_folder_name}"
         )

@@ -23,7 +23,7 @@ api_hash: str = config.api_hash  # type: ignore
 bot_token: str = config.bot_token  # type: ignore
 
 # Initialize client with optimized settings for downloads
-client = TelegramClient(
+client: TelegramClient = TelegramClient(
     config.session_name,
     api_id,
     api_hash,
@@ -55,7 +55,7 @@ async def start_client() -> None:
     """Start the Telegram client."""
     logger.info("Starting Telegram client...")
     try:
-        await client.start(bot_token=bot_token)
+        await client.start(bot_token=bot_token)  # type: ignore
         logger.info("Telegram client connected successfully")
     except Exception as e:
         logger.error(f"Failed to start Telegram client: {e}")
@@ -66,7 +66,7 @@ async def stop_client() -> None:
     """Stop the Telegram client."""
     logger.info("Stopping Telegram client...")
     try:
-        await client.disconnect()
+        await client.disconnect()  # type: ignore
         logger.info("Telegram client disconnected successfully")
     except Exception as e:
         logger.error(f"Error stopping Telegram client: {e}")
@@ -75,7 +75,7 @@ async def stop_client() -> None:
 async def run_until_disconnected() -> None:
     """Run the client until disconnected."""
     try:
-        await client.run_until_disconnected()
+        await client.run_until_disconnected()  # type: ignore
     except Exception as e:
         logger.error(f"Client disconnected with error: {e}")
         raise

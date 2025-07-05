@@ -22,7 +22,9 @@ async def create_directory_keyboard(current_path: str = ""):
                 path_manager.join_paths(current_path, item) if current_path else item
             )
             encoded_path = path_manager.encode_path(new_path)
-            buttons.append([Button.inline(f"📁 {item}", f"dir:{encoded_path}")])
+            buttons.append(
+                [Button.inline("📁 {}".format(item), "dir:{}".format(encoded_path))]
+            )
 
     # Add navigation buttons
     nav_buttons = []
@@ -32,19 +34,21 @@ async def create_directory_keyboard(current_path: str = ""):
         # We're in a subdirectory, go to parent
         parent_path = path_manager.get_parent_directory(current_path)
         encoded_parent = path_manager.encode_path(parent_path)
-        nav_buttons.append(Button.inline("⬆️ Back", f"dir:{encoded_parent}"))
+        nav_buttons.append(Button.inline("⬆️ Back", "dir:{}".format(encoded_parent)))
     else:
         # We're in current directory (.), go to parent directory
         # Use '..' as the parent path when we're in current directory
         encoded_parent = path_manager.encode_path("..")
-        nav_buttons.append(Button.inline("⬆️ Back", f"dir:{encoded_parent}"))
+        nav_buttons.append(Button.inline("⬆️ Back", "dir:{}".format(encoded_parent)))
 
     # Add "Go to Root" button for easier navigation
     if current_path != "/":
-        nav_buttons.append(Button.inline("🏠 Root", f"dir:/"))
+        nav_buttons.append(Button.inline("🏠 Root", "dir:/"))
 
     encoded_current = path_manager.encode_path(current_path)
-    nav_buttons.append(Button.inline("✅ Use Here", f"select:{encoded_current}"))
+    nav_buttons.append(
+        Button.inline("✅ Use Here", "select:{}".format(encoded_current))
+    )
 
     if nav_buttons:
         buttons.append(nav_buttons)
@@ -52,7 +56,9 @@ async def create_directory_keyboard(current_path: str = ""):
     # Add folder management buttons
     folder_buttons = []
     folder_buttons.append(
-        Button.inline("📁 Create New Folder", f"create_folder:{encoded_current}")
+        Button.inline(
+            "📁 Create New Folder", "create_folder:{}".format(encoded_current)
+        )
     )
     if folder_buttons:
         buttons.append(folder_buttons)

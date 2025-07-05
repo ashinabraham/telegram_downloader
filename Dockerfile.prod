@@ -1,4 +1,4 @@
-# Use Alpine Linux for Raspberry Pi
+# Production Dockerfile - installs package from PyPI
 FROM python:3.11-alpine
 
 WORKDIR /app
@@ -6,22 +6,25 @@ WORKDIR /app
 # Install system dependencies
 RUN apk add --no-cache gcc musl-dev libffi-dev openssl-dev
 
-# Copy requirements and install Python packages
+# Install the package from PyPI (when published)
+# RUN pip install telegram-file-downloader-bot
+
+# For now, install from local source (replace with PyPI install when published)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the entire project
 COPY . .
-
-# Install the package in development mode
 RUN pip install -e .
 
 # Create directories for downloads and saved files
-RUN mkdir -p downloads
+RUN mkdir -p saved_files downloads
 
 # Create user
 RUN adduser -D botuser && chown -R botuser:botuser /app
 USER botuser
+
+# Set environment variables
+ENV PYTHONPATH=/app/src
 
 # Run the bot using the installed package
 CMD ["telegram-downloader-bot"] 
