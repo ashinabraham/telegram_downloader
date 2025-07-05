@@ -44,7 +44,6 @@ class DownloadManager:
 
         # Rate limiting for notifications - use defaultdict for better performance
         from collections import defaultdict
-
         self.notification_cooldowns: Dict[str, float] = defaultdict(float)
         # Legacy attribute for backward compatibility
         self.download_executor = True

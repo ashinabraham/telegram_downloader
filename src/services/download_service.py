@@ -5,10 +5,9 @@ Download service module for handling file downloads and business logic.
 import os
 import asyncio
 import logging
-from typing import Optional, Tuple
+from typing import Tuple
 
 from ..core.config import get_config
-from ..core.user_state import user_state
 from ..download_manager.manager import download_manager
 from ..utils.path_utils import path_manager
 
@@ -187,14 +186,14 @@ class DownloadService:
             if not await DownloadService.check_disk_space(file_size):
                 return (
                     False,
-                    f"Insufficient disk space. File size: {file_size / (1024*1024):.1f} MB",
+                    f"Insufficient disk space. File size: {file_size / (1024 * 1024):.1f} MB",
                 )
 
             # Generate save path
             save_path = await DownloadService.generate_save_path(user_id, filename)
 
             # Queue the download
-            task = await download_manager.queue_download(
+            await download_manager.queue_download(
                 user_id, file_message, save_path
             )
 
@@ -236,9 +235,8 @@ class DownloadService:
 
                 # Calculate progress percentage
                 if task.total_bytes > 0:
-                    download_info["progress"] = (
-                        task.downloaded_bytes / task.total_bytes
-                    ) * 100
+                    progress = task.downloaded_bytes / task.total_bytes
+                    download_info["progress"] = progress * 100
 
                 status["downloads"].append(download_info)
 

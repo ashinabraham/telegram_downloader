@@ -86,13 +86,13 @@ async def status_command(event):
             return
 
         # Build status message
-        status_message = f"📊 **Download Status for {user_id}:**\n\n"
-        status_message += f"📈 **Summary:**\n"
-        status_message += f"• Total: {status['total']}\n"
-        status_message += f"• Queued: {status['queued']}\n"
-        status_message += f"• Downloading: {status['downloading']}\n"
-        status_message += f"• Completed: {status['completed']}\n"
-        status_message += f"• Failed: {status['failed']}\n\n"
+        status_message = "📊 **Download Status for " + user_id + ":**\n\n"
+        status_message += "📈 **Summary:**\n"
+        status_message += "• Total: " + str(status['total']) + "\n"
+        status_message += "• Queued: " + str(status['queued']) + "\n"
+        status_message += "• Downloading: " + str(status['downloading']) + "\n"
+        status_message += "• Completed: " + str(status['completed']) + "\n"
+        status_message += "• Failed: " + str(status['failed']) + "\n\n"
 
         if status["downloads"]:
             status_message += "📁 **Downloads:**\n"
@@ -111,9 +111,9 @@ async def status_command(event):
                 )
 
                 status_message += (
-                    f"{status_emoji} **{filename}**\n"
-                    f"   Status: {download['status']}\n"
-                    f"   Size: {size_mb:.1f} MB\n"
+                    status_emoji + " **" + filename + "**\n"
+                    "   Status: " + str(download["status"]) + "\n"
+                    "   Size: {:.1f} MB\n".format(size_mb)
                 )
 
                 if download["status"] == "downloading":

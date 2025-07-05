@@ -7,7 +7,7 @@ import os
 import logging
 import pathlib
 from dotenv import load_dotenv
-from typing import List, Optional
+from typing import Optional
 
 logger = logging.getLogger("src.core.config")
 
