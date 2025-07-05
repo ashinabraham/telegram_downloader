@@ -15,7 +15,7 @@ from . import version
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout), logging.FileHandler("bot.log")],
+    handlers=[logging.StreamHandler(sys.stdout)],  # Only use stdout handler for Docker
 )
 
 logger = logging.getLogger(__name__)
