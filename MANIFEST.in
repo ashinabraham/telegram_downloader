@@ -6,7 +6,6 @@ include Makefile
 include .env.example
 include docker-compose.yml
 include Dockerfile
-include Dockerfile.alpine
 include version.py
 
 recursive-include src *.py

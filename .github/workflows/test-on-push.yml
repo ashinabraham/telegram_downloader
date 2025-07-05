@@ -52,7 +52,6 @@ jobs:
       run: |
         echo "🐳 Testing Docker builds..."
         make docker-build
-        make docker-build-alpine
         
     - name: Cleanup Docker images
       if: always()

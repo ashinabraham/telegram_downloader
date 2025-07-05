@@ -147,10 +147,7 @@ docker-build:
 	docker build -t telegram-downloader .
 	@echo "✅ Docker image built successfully!"
 
-docker-build-alpine:
-	@echo "🏔️ Building Alpine Docker image..."
-	docker build -t telegram-downloader-alpine -f Dockerfile.alpine .
-	@echo "✅ Alpine Docker image built successfully!"
+
 
 docker-test:
 	@echo "🧪 Running tests in Docker container..."
@@ -164,7 +161,6 @@ docker-test:
 docker-clean:
 	@echo "🧹 Cleaning up Docker images..."
 	-docker rmi telegram-downloader 2>/dev/null || true
-	-docker rmi telegram-downloader-alpine 2>/dev/null || true
 	@echo "✅ Docker cleanup completed!"
 
 # =============================================================================
