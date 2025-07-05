@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 # Import version information first
-import version
+from . import version
 
 # Configure logging
 logging.basicConfig(

@@ -66,7 +66,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "telegram-downloader-bot=src.main:main",
+            "telegram-downloader-bot=src.main:run",
         ],
     },
     include_package_data=True,
