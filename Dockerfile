@@ -17,7 +17,8 @@ COPY . .
 RUN pip install -e .
 
 # Create directories for downloads, saved files, and sessions
-RUN mkdir -p downloads sessions
+RUN mkdir -p downloads sessions && \
+    chown -R 1000:1000 downloads sessions
 
 # Run the bot using the installed package
 CMD ["telegram-downloader-bot"] 
