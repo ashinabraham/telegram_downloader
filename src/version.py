@@ -2,15 +2,15 @@
 Version information for the Telegram File Downloader Bot.
 """
 
-__version__ = "1.0.0"
-__author__ = "Your Name"
-__email__ = "your.email@example.com"
+__version__ = "3.1.0-dev"
+__author__ = "Ashin Abraham"
+__email__ = "ashineabraham@gmail.com"
 __description__ = "A Telegram bot for downloading files with progress tracking and directory navigation"
-__url__ = "https://github.com/yourusername/telegram-file-downloader-bot"
+__url__ = "https://github.com/ashinabraham/telegram_downloader"
 __license__ = "MIT"
 
 # Version tuple for comparison
-VERSION = (1, 0, 0)
+VERSION = (3, 1, 0)
 
 
 def get_version():
