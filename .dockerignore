@@ -66,9 +66,9 @@ downloads/
 # Environment files (will be passed as environment variables)
 .env
 
-# Documentation
-README.md
-*.md
+# Documentation (exclude development docs but keep README.md for setup.py)
+DEVELOPMENT.md
+LICENSE
 
 # Temporary files
 tmp/
