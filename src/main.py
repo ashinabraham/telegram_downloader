@@ -38,8 +38,8 @@ async def main():
         # Add the src directory to the Python path
         sys.path.insert(0, str(Path(__file__).parent))
 
-        from bot.client import start_client, stop_client, run_until_disconnected
-        from core.config import get_config
+        from src.bot.client import start_client, stop_client, run_until_disconnected
+        from src.core.config import get_config
 
         # Get configuration (not used but required for initialization)
         get_config()
