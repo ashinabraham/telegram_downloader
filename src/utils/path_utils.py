@@ -27,7 +27,7 @@ class PathManager:
             # Resolve both paths to absolute paths
             abs_path = os.path.abspath(path)
             abs_base = os.path.abspath(self.base_download_dir)
-            
+
             # Check if the path is within the base directory
             return abs_path == abs_base or abs_path.startswith(abs_base + os.sep)
         except Exception as e:
@@ -55,9 +55,9 @@ class PathManager:
         # Ensure current_path is within bounds
         if not self._is_path_within_bounds(current_path):
             current_path = self.base_download_dir
-            
+
         full_path = current_path if current_path else self.base_download_dir
-        
+
         # Check if path exists using async operation
         if not await asyncio.to_thread(os.path.exists, full_path):
             return []
@@ -66,7 +66,7 @@ class PathManager:
         try:
             # List directory contents using async operation
             directory_contents = await asyncio.to_thread(os.listdir, full_path)
-            
+
             for item in directory_contents:
                 item_path = os.path.join(full_path, item)
                 # Check if it's a directory using async operation
@@ -105,7 +105,9 @@ class PathManager:
         joined_path = os.path.join(*paths)
         # Ensure the joined path is within bounds
         if not self._is_path_within_bounds(joined_path):
-            logger.warning(f"Path {joined_path} is outside allowed bounds, using base directory")
+            logger.warning(
+                f"Path {joined_path} is outside allowed bounds, using base directory"
+            )
             return self.base_download_dir
         return joined_path
 
@@ -124,7 +126,9 @@ class PathManager:
         try:
             # Ensure directory is within bounds
             if not self._is_path_within_bounds(directory):
-                logger.error(f"Cannot create directory {directory} - outside allowed bounds")
+                logger.error(
+                    f"Cannot create directory {directory} - outside allowed bounds"
+                )
                 return False
             os.makedirs(directory, exist_ok=True)
             return True
@@ -137,7 +141,9 @@ class PathManager:
         try:
             # Ensure directory is within bounds
             if not self._is_path_within_bounds(directory):
-                logger.error(f"Cannot create directory {directory} - outside allowed bounds")
+                logger.error(
+                    f"Cannot create directory {directory} - outside allowed bounds"
+                )
                 return False
             await asyncio.to_thread(os.makedirs, directory, exist_ok=True)
             return True
@@ -161,7 +167,7 @@ class PathManager:
         # First check if path is within bounds
         if not self._is_path_within_bounds(path):
             return False
-            
+
         # List of potentially dangerous directories
         dangerous_dirs = {
             "/",

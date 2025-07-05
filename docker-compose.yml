@@ -9,6 +9,17 @@ services:
       - BOT_TOKEN=${BOT_TOKEN}
       - ALLOWED_USERS=${ALLOWED_USERS}
       - ROOT_DOWNLOAD_PATH=/app/downloads
+      # Performance optimizations
+      - CHUNK_SIZE=8192
+      - MAX_CONCURRENT_DOWNLOADS=3
+      - DOWNLOAD_TIMEOUT=300
+      - NOTIFICATION_COOLDOWN=2.0
+      - MAX_FILE_SIZE=1073741824
+      - MIN_FREE_SPACE=1073741824
+      - ASYNC_IO_TIMEOUT=30.0
+      - MAX_RETRIES=3
+      - LOG_LEVEL=INFO
+      - ENABLE_DEBUG_LOGGING=false
     volumes:
       - ${SAVED_FILES_PATH}:/app/downloads
     deploy:

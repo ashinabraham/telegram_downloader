@@ -88,7 +88,9 @@ class TestConfig:
                 Config()
                 mock_load_dotenv.assert_called_once()
 
-    def test_config_allowed_users_whitespace_handling(self, test_env_vars, test_base_download_dir):
+    def test_config_allowed_users_whitespace_handling(
+        self, test_env_vars, test_base_download_dir
+    ):
         """Test that whitespace in allowed users is handled correctly."""
         test_env_vars["ALLOWED_USERS"] = " 123456 , 789012 , 345678 "
         test_env_vars["ROOT_DOWNLOAD_PATH"] = test_base_download_dir
@@ -122,6 +124,7 @@ def test_env_vars():
         "BOT_TOKEN": "test_bot_token_123456789",
         "ALLOWED_USERS": "123456,789012,345678",
     }
+
 
 @pytest.fixture
 def test_base_download_dir(temp_dir):

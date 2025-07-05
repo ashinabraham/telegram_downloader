@@ -72,7 +72,9 @@ class TestBotIntegration:
         assert user_state.is_logged_in(user_id) is True
 
     @pytest.mark.asyncio
-    async def test_file_download_workflow(self, setup_bot_components, test_base_download_dir):
+    async def test_file_download_workflow(
+        self, setup_bot_components, test_base_download_dir
+    ):
         """Test complete file download workflow."""
         components = setup_bot_components
         user_state = components["user_state"]
@@ -103,7 +105,9 @@ class TestBotIntegration:
         assert task.status == "queued"
 
     @pytest.mark.asyncio
-    async def test_directory_navigation_workflow(self, setup_bot_components, test_base_download_dir):
+    async def test_directory_navigation_workflow(
+        self, setup_bot_components, test_base_download_dir
+    ):
         """Test directory navigation workflow."""
         components = setup_bot_components
         path_manager = components["path_manager"]
@@ -121,7 +125,9 @@ class TestBotIntegration:
         assert len(options) >= 2  # Should have folder1 and folder2
 
     @pytest.mark.asyncio
-    async def test_download_manager_operations(self, setup_bot_components, test_base_download_dir):
+    async def test_download_manager_operations(
+        self, setup_bot_components, test_base_download_dir
+    ):
         """Test download manager operations."""
         components = setup_bot_components
         download_manager = components["download_manager"]
@@ -261,7 +267,9 @@ class TestBotIntegration:
             assert downloads[0].status == "queued"
 
     @pytest.mark.asyncio
-    async def test_filename_sanitization_workflow(self, setup_bot_components, test_base_download_dir):
+    async def test_filename_sanitization_workflow(
+        self, setup_bot_components, test_base_download_dir
+    ):
         """Test filename sanitization for files with spaces, symbols, and colons."""
         components = setup_bot_components
         user_state = components["user_state"]
@@ -311,7 +319,9 @@ class TestBotIntegration:
             )  # No leading/trailing spaces
 
             # Test download with sanitized filename (use base dir)
-            save_path = path_manager.join_paths(test_base_download_dir, sanitized_filename)
+            save_path = path_manager.join_paths(
+                test_base_download_dir, sanitized_filename
+            )
             task = await download_manager.queue_download(
                 user_id, file_message, save_path
             )
@@ -337,5 +347,7 @@ class TestBotIntegration:
         assert sanitized_user_filename.strip() == sanitized_user_filename
 
         # Test that the sanitized filename can be used in a path (use base dir)
-        test_save_path = path_manager.join_paths(test_base_download_dir, sanitized_user_filename)
+        test_save_path = path_manager.join_paths(
+            test_base_download_dir, sanitized_user_filename
+        )
         assert os.path.basename(test_save_path) == sanitized_user_filename

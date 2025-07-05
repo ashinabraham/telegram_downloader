@@ -38,7 +38,9 @@ class Config:
         # Parse allowed users, handling whitespace and empty values
         allowed_users_str = os.getenv("ALLOWED_USERS", "")
         if allowed_users_str.strip():
-            self.allowed_users = {user.strip() for user in allowed_users_str.split(",") if user.strip()}
+            self.allowed_users = {
+                user.strip() for user in allowed_users_str.split(",") if user.strip()
+            }
         else:
             self.allowed_users = set()
 
@@ -48,22 +50,34 @@ class Config:
         self.base_download_dir = self.root_download_path
 
         # Download settings
-        self.chunk_size = int(os.getenv("CHUNK_SIZE", "8192"))  # 8KB chunks for better performance
+        self.chunk_size = int(
+            os.getenv("CHUNK_SIZE", "8192")
+        )  # 8KB chunks for better performance
         self.max_concurrent_downloads = int(os.getenv("MAX_CONCURRENT_DOWNLOADS", "3"))
         self.download_timeout = int(os.getenv("DOWNLOAD_TIMEOUT", "300"))  # 5 minutes
-        self.notification_cooldown = float(os.getenv("NOTIFICATION_COOLDOWN", "2.0"))  # 2 seconds
-        
+        self.notification_cooldown = float(
+            os.getenv("NOTIFICATION_COOLDOWN", "2.0")
+        )  # 2 seconds
+
         # Memory and resource limits
-        self.max_file_size = int(os.getenv("MAX_FILE_SIZE", "1073741824"))  # 1GB default
-        self.min_free_space = int(os.getenv("MIN_FREE_SPACE", "1073741824"))  # 1GB minimum free space
-        
+        self.max_file_size = int(
+            os.getenv("MAX_FILE_SIZE", "1073741824")
+        )  # 1GB default
+        self.min_free_space = int(
+            os.getenv("MIN_FREE_SPACE", "1073741824")
+        )  # 1GB minimum free space
+
         # Async operation settings
-        self.async_io_timeout = float(os.getenv("ASYNC_IO_TIMEOUT", "30.0"))  # 30 seconds
+        self.async_io_timeout = float(
+            os.getenv("ASYNC_IO_TIMEOUT", "30.0")
+        )  # 30 seconds
         self.max_retries = int(os.getenv("MAX_RETRIES", "3"))
-        
+
         # Logging settings
         self.log_level = os.getenv("LOG_LEVEL", "INFO")
-        self.enable_debug_logging = os.getenv("ENABLE_DEBUG_LOGGING", "false").lower() == "true"
+        self.enable_debug_logging = (
+            os.getenv("ENABLE_DEBUG_LOGGING", "false").lower() == "true"
+        )
 
         # Legacy attributes for backward compatibility
         self.download_chunk_size = 8 * 1024 * 1024  # 8MB chunks
@@ -84,11 +98,11 @@ class Config:
         if not self.api_id:
             logger.error("API_ID is required")
             return False
-        
+
         if not self.api_hash:
             logger.error("API_HASH is required")
             return False
-        
+
         if not self.bot_token:
             logger.error("BOT_TOKEN is required")
             return False
@@ -97,11 +111,11 @@ class Config:
         if self.chunk_size <= 0:
             logger.error("CHUNK_SIZE must be positive")
             return False
-        
+
         if self.max_concurrent_downloads <= 0:
             logger.error("MAX_CONCURRENT_DOWNLOADS must be positive")
             return False
-        
+
         if self.download_timeout <= 0:
             logger.error("DOWNLOAD_TIMEOUT must be positive")
             return False
@@ -128,11 +142,11 @@ class Config:
         if self.chunk_size <= 0:
             logger.error("CHUNK_SIZE must be positive")
             raise ValueError("CHUNK_SIZE must be positive")
-        
+
         if self.max_concurrent_downloads <= 0:
             logger.error("MAX_CONCURRENT_DOWNLOADS must be positive")
             raise ValueError("MAX_CONCURRENT_DOWNLOADS must be positive")
-        
+
         if self.download_timeout <= 0:
             logger.error("DOWNLOAD_TIMEOUT must be positive")
             raise ValueError("DOWNLOAD_TIMEOUT must be positive")
@@ -155,7 +169,7 @@ class Config:
             "max_file_size": self.max_file_size,
             "min_free_space": self.min_free_space,
             "async_io_timeout": self.async_io_timeout,
-            "max_retries": self.max_retries
+            "max_retries": self.max_retries,
         }
 
     def __str__(self) -> str:

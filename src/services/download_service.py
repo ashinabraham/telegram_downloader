@@ -1,17 +1,15 @@
 """
-Download service module for the Telegram File Downloader Bot.
-Handles download business logic, queue management, and progress tracking.
+Download service module for handling file downloads and business logic.
 """
 
 import os
+import asyncio
 import logging
-import time
-from concurrent.futures import ThreadPoolExecutor
-from typing import Dict, List, Any
-from pathlib import Path
+from typing import Optional, Tuple
 
 from ..core.config import get_config
-from ..download_manager.manager import DownloadManager, DownloadTask
+from ..core.user_state import user_state
+from ..download_manager.manager import download_manager
 from ..utils.path_utils import path_manager
 
 logger = logging.getLogger(__name__)
@@ -21,155 +19,252 @@ config = get_config()
 
 
 class DownloadService:
-    """Service layer for download operations and business logic."""
+    """Service layer for handling download operations."""
 
-    def __init__(self):
-        self.download_manager = DownloadManager()
-        self.download_executor = ThreadPoolExecutor(
-            max_workers=config.max_concurrent_downloads
-        )
+    @staticmethod
+    async def validate_user_permission(user_id: str) -> bool:
+        """Validate if user has permission to download files."""
+        allowed_users = config.allowed_users
+        if not allowed_users:
+            return True
+        return str(user_id) in allowed_users
 
-    async def queue_download(
-        self, user_id: str, file_message, save_path: str
-    ) -> DownloadTask:
-        """Queue a file for download with business logic validation."""
-        logger.info(
-            f"Service: Queueing download for user {user_id} to path: {save_path}"
-        )
+    @staticmethod
+    async def validate_file_message(file_message) -> Tuple[bool, str]:
+        """Validate if the message contains a downloadable file."""
+        try:
+            if not file_message or not file_message.media:
+                return False, "No media found in message"
 
-        # Validate save path
-        if not self._validate_save_path(save_path):
-            raise ValueError(f"Invalid save path: {save_path}")
+            # Check if it's a document
+            if hasattr(file_message.media, "document") and file_message.media.document:
+                return True, ""
 
-        # Create download task
-        task = await self.download_manager.queue_download(
-            user_id, file_message, save_path
-        )
+            # Check if it's a photo
+            if hasattr(file_message.media, "photo") and file_message.media.photo:
+                return True, ""
 
-        logger.info(f"Service: Download queued successfully for user {user_id}")
-        return task
+            # Check if it's a video
+            if hasattr(file_message.media, "video") and file_message.media.video:
+                return True, ""
 
-    def get_user_downloads(self, user_id: str) -> List[DownloadTask]:
-        """Get all downloads for a user with business logic."""
-        downloads = self.download_manager.get_user_downloads(user_id)
+            # Check if it's an audio file
+            if hasattr(file_message.media, "audio") and file_message.media.audio:
+                return True, ""
 
-        # Filter out any invalid downloads
-        valid_downloads = [d for d in downloads if self._validate_download_task(d)]
+            # Check if it's a voice message
+            if hasattr(file_message.media, "voice") and file_message.media.voice:
+                return True, ""
 
-        return valid_downloads
+            return False, "Unsupported media type"
 
-    def clear_completed_downloads(self, user_id: str) -> int:
-        """Clear completed downloads with business logic."""
-        cleared_count = self.download_manager.clear_completed_downloads(user_id)
+        except Exception as e:
+            logger.error(f"Error validating file message: {e}")
+            return False, f"Error validating message: {str(e)}"
 
-        if cleared_count > 0:
-            logger.info(
-                f"Service: Cleared {cleared_count} completed downloads for user {user_id}"
+    @staticmethod
+    async def get_file_info(file_message) -> Tuple[str, int, str]:
+        """Extract file information from message."""
+        try:
+            filename = "unknown_file"
+            file_size = 0
+            file_type = "unknown"
+
+            if hasattr(file_message.media, "document") and file_message.media.document:
+                document = file_message.media.document
+                filename = (
+                    document.attributes[0].file_name
+                    if document.attributes
+                    else "document"
+                )
+                file_size = document.size
+                file_type = "document"
+            elif hasattr(file_message.media, "photo") and file_message.media.photo:
+                photo = file_message.media.photo
+                filename = f"photo_{photo.id}.jpg"
+                file_size = photo.sizes[-1].size if photo.sizes else 0
+                file_type = "photo"
+            elif hasattr(file_message.media, "video") and file_message.media.video:
+                video = file_message.media.video
+                filename = (
+                    video.attributes[0].file_name
+                    if video.attributes
+                    else f"video_{video.id}.mp4"
+                )
+                file_size = video.size
+                file_type = "video"
+            elif hasattr(file_message.media, "audio") and file_message.media.audio:
+                audio = file_message.media.audio
+                filename = (
+                    audio.attributes[0].file_name
+                    if audio.attributes
+                    else f"audio_{audio.id}.mp3"
+                )
+                file_size = audio.size
+                file_type = "audio"
+            elif hasattr(file_message.media, "voice") and file_message.media.voice:
+                voice = file_message.media.voice
+                filename = f"voice_{voice.id}.ogg"
+                file_size = voice.size
+                file_type = "voice"
+
+            return filename, file_size, file_type
+
+        except Exception as e:
+            logger.error(f"Error getting file info: {e}")
+            return "unknown_file", 0, "unknown"
+
+    @staticmethod
+    async def generate_save_path(user_id: str, filename: str) -> str:
+        """Generate a safe file path for saving the downloaded file."""
+        try:
+            # Sanitize filename using path_manager
+            safe_filename = path_manager.sanitize_filename(filename)
+
+            # Create user-specific directory
+            user_dir = os.path.join(config.base_download_dir, str(user_id))
+
+            # Ensure directory exists using async operation
+            await asyncio.to_thread(path_manager.ensure_directory_exists, user_dir)
+
+            # Generate unique filename if file already exists
+            base_name, ext = os.path.splitext(safe_filename)
+            counter = 1
+            final_filename = safe_filename
+
+            while await asyncio.to_thread(
+                os.path.exists, os.path.join(user_dir, final_filename)
+            ):
+                final_filename = f"{base_name}_{counter}{ext}"
+                counter += 1
+
+            return os.path.join(user_dir, final_filename)
+
+        except Exception as e:
+            logger.error(f"Error generating save path: {e}")
+            # Fallback to simple path
+            return os.path.join(config.base_download_dir, str(user_id), safe_filename)
+
+    @staticmethod
+    async def check_disk_space(file_size: int) -> bool:
+        """Check if there's enough disk space for the file."""
+        try:
+            import shutil
+
+            total, used, free = await asyncio.to_thread(
+                shutil.disk_usage, config.base_download_dir
             )
 
-        return cleared_count
+            # Require at least 2x the file size as free space for safety
+            required_space = file_size * 2
+            return free >= required_space
 
-    def retry_failed_downloads(self, user_id: str) -> int:
-        """Retry failed downloads with business logic."""
-        retry_count = self.download_manager.retry_failed_downloads(user_id)
+        except Exception as e:
+            logger.error(f"Error checking disk space: {e}")
+            return True  # Assume OK if we can't check
 
-        if retry_count > 0:
-            logger.info(
-                f"Service: Retrying {retry_count} failed downloads for user {user_id}"
+    @staticmethod
+    async def start_download(user_id: str, file_message) -> Tuple[bool, str]:
+        """Start a download for the given user and file message."""
+        try:
+            # Validate user permission
+            if not await DownloadService.validate_user_permission(user_id):
+                return False, "You are not authorized to download files."
+
+            # Validate file message
+            is_valid, error_msg = await DownloadService.validate_file_message(
+                file_message
+            )
+            if not is_valid:
+                return False, error_msg
+
+            # Get file information
+            filename, file_size, file_type = await DownloadService.get_file_info(
+                file_message
             )
 
-        return retry_count
+            # Check disk space
+            if not await DownloadService.check_disk_space(file_size):
+                return (
+                    False,
+                    f"Insufficient disk space. File size: {file_size / (1024*1024):.1f} MB",
+                )
 
-    async def send_notification(
-        self, user_id: str, message: str, is_management_command: bool = False
-    ) -> None:
-        """Send notification with business logic."""
-        await self.download_manager.send_notification(
-            user_id, message, is_management_command
-        )
+            # Generate save path
+            save_path = await DownloadService.generate_save_path(user_id, filename)
 
-    def _validate_save_path(self, save_path: str) -> bool:
-        """Validate save path with business rules."""
-        try:
-            # Check if path is within the allowed base download directory
-            if not path_manager._is_path_within_bounds(save_path):
-                logger.error(f"Save path {save_path} is outside allowed bounds")
-                return False
+            # Queue the download
+            task = await download_manager.queue_download(
+                user_id, file_message, save_path
+            )
 
-            # Check if path is absolute or relative
-            path = Path(save_path)
+            logger.info(
+                f"Download queued for user {user_id}: {filename} -> {save_path}"
+            )
+            return True, f"Download started for {filename}"
 
-            # Ensure directory exists or can be created
-            parent_dir = path.parent
-            if not parent_dir.exists():
-                # Try to create directory
-                try:
-                    parent_dir.mkdir(parents=True, exist_ok=True)
-                except Exception as e:
-                    logger.error(f"Failed to create directory {parent_dir}: {e}")
-                    return False
-
-            # Check if directory is writable
-            if not os.access(parent_dir, os.W_OK):
-                logger.error(f"Directory {parent_dir} is not writable")
-                return False
-
-            return True
         except Exception as e:
-            logger.error(f"Error validating save path {save_path}: {e}")
-            return False
+            logger.error(f"Error starting download: {e}")
+            return False, f"Failed to start download: {str(e)}"
 
-    def _validate_download_task(self, task: DownloadTask) -> bool:
-        """Validate download task with business rules."""
+    @staticmethod
+    async def get_download_status(user_id: str) -> dict:
+        """Get download status for a user."""
         try:
-            # Check if task has required attributes
-            if not hasattr(task, "user_id") or not hasattr(task, "save_path"):
-                return False
+            downloads = download_manager.get_user_downloads(user_id)
 
-            # Check if save path is valid
-            if not self._validate_save_path(task.save_path):
-                return False
+            status = {
+                "total": len(downloads),
+                "queued": 0,
+                "downloading": 0,
+                "completed": 0,
+                "failed": 0,
+                "downloads": [],
+            }
 
-            return True
+            for task in downloads:
+                status[task.status] += 1
+
+                download_info = {
+                    "filename": os.path.basename(task.save_path),
+                    "status": task.status,
+                    "progress": 0,
+                    "size": task.total_bytes,
+                    "downloaded": task.downloaded_bytes,
+                    "error": task.error,
+                }
+
+                # Calculate progress percentage
+                if task.total_bytes > 0:
+                    download_info["progress"] = (
+                        task.downloaded_bytes / task.total_bytes
+                    ) * 100
+
+                status["downloads"].append(download_info)
+
+            return status
+
         except Exception as e:
-            logger.error(f"Error validating download task: {e}")
-            return False
+            logger.error(f"Error getting download status: {e}")
+            return {"error": str(e)}
 
-    def get_download_statistics(self, user_id: str) -> Dict[str, Any]:
-        """Get download statistics with business logic."""
-        downloads = self.get_user_downloads(user_id)
+    @staticmethod
+    async def clear_completed_downloads(user_id: str) -> int:
+        """Clear completed downloads for a user."""
+        try:
+            return download_manager.clear_completed_downloads(user_id)
+        except Exception as e:
+            logger.error(f"Error clearing completed downloads: {e}")
+            return 0
 
-        stats: Dict[str, Any] = {
-            "total": len(downloads),
-            "queued": 0,
-            "downloading": 0,
-            "completed": 0,
-            "failed": 0,
-            "total_size": 0,
-            "downloaded_size": 0,
-            "average_speed": 0.0,
-        }
-
-        total_speed = 0.0
-        speed_count = 0
-
-        for task in downloads:
-            stats[task.status] += 1
-            stats["total_size"] += task.total_bytes
-            stats["downloaded_size"] += task.downloaded_bytes
-
-            # Calculate speed for downloading tasks
-            if task.status == "downloading" and task.start_time:
-                elapsed_time = time.time() - task.start_time
-                if elapsed_time > 0:
-                    speed = task.downloaded_bytes / elapsed_time
-                    total_speed += speed
-                    speed_count += 1
-
-        if speed_count > 0:
-            stats["average_speed"] = total_speed / speed_count
-
-        return stats
+    @staticmethod
+    async def retry_failed_downloads(user_id: str) -> int:
+        """Retry failed downloads for a user."""
+        try:
+            return download_manager.retry_failed_downloads(user_id)
+        except Exception as e:
+            logger.error(f"Error retrying failed downloads: {e}")
+            return 0
 
 
 # Global download service instance

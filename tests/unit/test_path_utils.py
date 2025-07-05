@@ -130,7 +130,9 @@ class TestPathManager:
         """Test joining simple paths within base directory."""
         with patch.dict(os.environ, {"ROOT_DOWNLOAD_PATH": test_base_download_dir}):
             path_manager = PathManager()
-            joined = path_manager.join_paths(test_base_download_dir, "dir1", "dir2", "file.txt")
+            joined = path_manager.join_paths(
+                test_base_download_dir, "dir1", "dir2", "file.txt"
+            )
             expected = os.path.join(test_base_download_dir, "dir1", "dir2", "file.txt")
             assert joined == expected
 
@@ -138,7 +140,9 @@ class TestPathManager:
         """Test joining paths with empty components within base directory."""
         with patch.dict(os.environ, {"ROOT_DOWNLOAD_PATH": test_base_download_dir}):
             path_manager = PathManager()
-            joined = path_manager.join_paths(test_base_download_dir, "dir1", "", "file.txt")
+            joined = path_manager.join_paths(
+                test_base_download_dir, "dir1", "", "file.txt"
+            )
             expected = os.path.join(test_base_download_dir, "dir1", "", "file.txt")
             assert joined == expected
 
@@ -209,7 +213,9 @@ class TestPathManager:
         """Test getting parent directory of a path with parent within base directory."""
         with patch.dict(os.environ, {"ROOT_DOWNLOAD_PATH": test_base_download_dir}):
             path_manager = PathManager()
-            parent = path_manager.get_parent_directory(os.path.join(test_base_download_dir, "test", "path", "file.txt"))
+            parent = path_manager.get_parent_directory(
+                os.path.join(test_base_download_dir, "test", "path", "file.txt")
+            )
             expected = os.path.join(test_base_download_dir, "test", "path")
             assert parent == expected
 
@@ -299,8 +305,12 @@ class TestPathManager:
         with patch.dict(os.environ, {"ROOT_DOWNLOAD_PATH": test_base_download_dir}):
             path_manager = PathManager()
             # Create test directories
-            os.makedirs(os.path.join(test_base_download_dir, "test_dir1"), exist_ok=True)
-            os.makedirs(os.path.join(test_base_download_dir, "test_dir2"), exist_ok=True)
+            os.makedirs(
+                os.path.join(test_base_download_dir, "test_dir1"), exist_ok=True
+            )
+            os.makedirs(
+                os.path.join(test_base_download_dir, "test_dir2"), exist_ok=True
+            )
 
             options = await path_manager.get_directory_options(test_base_download_dir)
             assert len(options) >= 2
@@ -313,7 +323,9 @@ class TestPathManager:
         with patch.dict(os.environ, {"ROOT_DOWNLOAD_PATH": test_base_download_dir}):
             path_manager = PathManager()
             with patch("os.listdir", side_effect=PermissionError):
-                options = await path_manager.get_directory_options(test_base_download_dir)
+                options = await path_manager.get_directory_options(
+                    test_base_download_dir
+                )
                 assert options == []
 
     @pytest.mark.asyncio
@@ -322,16 +334,22 @@ class TestPathManager:
         with patch.dict(os.environ, {"ROOT_DOWNLOAD_PATH": test_base_download_dir}):
             path_manager = PathManager()
             with patch("os.listdir", side_effect=OSError):
-                options = await path_manager.get_directory_options(test_base_download_dir)
+                options = await path_manager.get_directory_options(
+                    test_base_download_dir
+                )
                 assert options == []
 
     @pytest.mark.asyncio
-    async def test_get_directory_options_general_exception(self, test_base_download_dir):
+    async def test_get_directory_options_general_exception(
+        self, test_base_download_dir
+    ):
         """Test getting directory options with general exception."""
         with patch.dict(os.environ, {"ROOT_DOWNLOAD_PATH": test_base_download_dir}):
             path_manager = PathManager()
             with patch("os.listdir", side_effect=Exception("Test exception")):
-                options = await path_manager.get_directory_options(test_base_download_dir)
+                options = await path_manager.get_directory_options(
+                    test_base_download_dir
+                )
                 assert options == []
 
     @pytest.mark.asyncio
@@ -363,7 +381,12 @@ class TestPathManager:
         """Test multiple path encodings work correctly."""
         with patch.dict(os.environ, {"ROOT_DOWNLOAD_PATH": test_base_download_dir}):
             path_manager = PathManager()
-            paths = ["/path1", "/path2", "/path3", "/path1"]  # Note: path1 appears twice
+            paths = [
+                "/path1",
+                "/path2",
+                "/path3",
+                "/path1",
+            ]  # Note: path1 appears twice
             encodings = [path_manager.encode_path(path) for path in paths]
             decodings = [path_manager.decode_path(encoding) for encoding in encodings]
 

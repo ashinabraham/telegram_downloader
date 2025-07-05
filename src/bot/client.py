@@ -24,16 +24,16 @@ bot_token: str = config.bot_token  # type: ignore
 
 # Initialize client with optimized settings for downloads
 client: TelegramClient = TelegramClient(
-    config.session_name,
+    "bot_session",
     api_id,
     api_hash,
     # Optimized connection settings for downloads
-    connection_retries=config.connection_retries,
-    retry_delay=config.retry_delay,
-    timeout=config.timeout,
-    request_retries=config.request_retries,
+    connection_retries=config.max_retries,
+    retry_delay=1,
+    timeout=int(config.async_io_timeout),
+    request_retries=config.max_retries,
     # Download optimizations
-    flood_sleep_threshold=config.flood_sleep_threshold,
+    flood_sleep_threshold=60,
 )
 logger.info("Telethon client initialized with optimized settings")
 
