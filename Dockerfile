@@ -13,12 +13,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the entire project
 COPY . .
 
-# Install the package in development mode
-RUN pip install -e .
-
 # Create directories for downloads, saved files, and sessions
 RUN mkdir -p downloads sessions && \
     chown -R 1000:1000 downloads sessions
 
-# Run the bot using the installed package
-CMD ["telegram-downloader-bot"] 
+# Run the bot directly from source
+CMD ["python", "main.py"] 
