@@ -17,8 +17,24 @@ config = get_config()
 # Initialize user state
 user_state = UserState()
 
-# Initialize Telegram client
-client = TelegramClient(config.session_name, config.api_id, config.api_hash)
+# Initialize Telegram client with explicit type casting
+api_id: int = config.api_id  # type: ignore
+api_hash: str = config.api_hash  # type: ignore
+bot_token: str = config.bot_token  # type: ignore
+
+# Initialize client with optimized settings for downloads
+client = TelegramClient(
+    config.session_name,
+    api_id,
+    api_hash,
+    # Optimized connection settings for downloads
+    connection_retries=config.connection_retries,
+    retry_delay=config.retry_delay,
+    timeout=config.timeout,
+    request_retries=config.request_retries,
+    # Download optimizations
+    flood_sleep_threshold=config.flood_sleep_threshold,
+)
 logger.info("Telethon client initialized with optimized settings")
 
 
@@ -39,7 +55,7 @@ async def start_client() -> None:
     """Start the Telegram client."""
     logger.info("Starting Telegram client...")
     try:
-        await client.start(bot_token=config.bot_token)
+        await client.start(bot_token=bot_token)
         logger.info("Telegram client connected successfully")
     except Exception as e:
         logger.error(f"Failed to start Telegram client: {e}")

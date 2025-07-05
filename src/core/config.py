@@ -48,9 +48,9 @@ class Config:
         self.base_download_dir = "."
 
         # Download settings
-        self.download_chunk_size = 1024 * 1024  # 1MB chunks
+        self.download_chunk_size = 8 * 1024 * 1024  # 8MB chunks (increased from 1MB)
         self.progress_update_interval = 5.0  # Update progress every 5 seconds
-        self.max_concurrent_downloads = 5
+        self.max_concurrent_downloads = 3  # Reduced to avoid rate limiting
         self.notification_cooldown = (
             30  # Minimum seconds between notifications per user
         )
@@ -58,7 +58,7 @@ class Config:
         # Connection settings
         self.connection_retries = 5
         self.retry_delay = 1
-        self.timeout = 30
+        self.timeout = 60  # Increased timeout for large files
         self.request_retries = 5
         self.flood_sleep_threshold = 60
 
