@@ -10,15 +10,14 @@ RUN apk add --no-cache gcc musl-dev libffi-dev openssl-dev
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application
+# Copy the entire project
 COPY . .
 
-# Create directories
-RUN mkdir -p saved_files downloads
+# Install the package in development mode
+RUN pip install -e .
 
-# Create user
-RUN adduser -D botuser && chown -R botuser:botuser /app
-USER botuser
+# Create directories for downloads and saved files
+RUN mkdir -p downloads
 
-# Run the bot using the new main.py entry point
-CMD ["python", "main.py"] 
+# Run the bot using the installed package
+CMD ["telegram-downloader-bot"] 

@@ -1,0 +1,24 @@
+include README.md
+include LICENSE
+include requirements.txt
+include pytest.ini
+include Makefile
+include .env.example
+include docker-compose.yml
+include Dockerfile
+include version.py
+
+recursive-include src *.py
+recursive-include tests *.py
+recursive-include scripts *.sh
+
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude __pycache__
+global-exclude .git*
+global-exclude .DS_Store
+global-exclude *.log
+global-exclude saved_files/*
+global-exclude downloads/*
+global-exclude venv/*
+global-exclude .venv/* 

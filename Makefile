@@ -1,7 +1,7 @@
 # Makefile for Telegram Bot Project
 # Usage: make <target>
 
-.PHONY: help install lint format test test-coverage test-fast clean docker-build docker-test pipeline fast-pipeline
+.PHONY: help install install-dev install-package build-package version lint format test test-coverage test-fast clean docker-build docker-test pipeline fast-pipeline
 
 # Default target
 help:
@@ -11,6 +11,9 @@ help:
 	@echo "📦 Setup & Installation:"
 	@echo "  install          - Install project dependencies"
 	@echo "  install-dev      - Install development dependencies"
+	@echo "  install-package  - Install the package in development mode"
+	@echo "  build-package    - Build the package distribution"
+	@echo "  version          - Show version information"
 	@echo ""
 	@echo "🔍 Code Quality:"
 	@echo "  lint             - Run flake8 linting"
@@ -46,6 +49,8 @@ PIP := pip3
 SRC_DIR := src
 TEST_DIR := tests
 COVERAGE_DIR := htmlcov
+DIST_DIR := dist
+BUILD_DIR := build
 
 # Environment variables for testing
 export API_ID := 1234
@@ -66,8 +71,23 @@ install-dev:
 	@echo "📦 Installing development dependencies..."
 	$(PIP) install --upgrade pip
 	$(PIP) install -r requirements.txt
-	$(PIP) install black flake8 mypy
+	$(PIP) install black flake8 mypy pytest pytest-asyncio pytest-cov
 	@echo "✅ Development dependencies installed successfully!"
+
+install-package:
+	@echo "📦 Installing package in development mode..."
+	$(PIP) install -e .
+	@echo "✅ Package installed successfully!"
+
+build-package:
+	@echo "📦 Building package distribution..."
+	$(PYTHON) -m build
+	@echo "✅ Package distribution built successfully!"
+	@echo "📁 Distribution files created in $(DIST_DIR)/"
+
+version:
+	@echo "📋 Version Information:"
+	@$(PYTHON) -c "import sys; sys.path.insert(0, 'src'); import version; print(f'Version: {version.__version__}'); print(f'Author: {version.__author__}'); print(f'Description: {version.__description__}')"
 
 # =============================================================================
 # Code Quality
@@ -127,10 +147,7 @@ docker-build:
 	docker build -t telegram-downloader .
 	@echo "✅ Docker image built successfully!"
 
-docker-build-alpine:
-	@echo "🏔️ Building Alpine Docker image..."
-	docker build -t telegram-downloader-alpine -f Dockerfile.alpine .
-	@echo "✅ Alpine Docker image built successfully!"
+
 
 docker-test:
 	@echo "🧪 Running tests in Docker container..."
@@ -144,7 +161,6 @@ docker-test:
 docker-clean:
 	@echo "🧹 Cleaning up Docker images..."
 	-docker rmi telegram-downloader 2>/dev/null || true
-	-docker rmi telegram-downloader-alpine 2>/dev/null || true
 	@echo "✅ Docker cleanup completed!"
 
 # =============================================================================
@@ -172,6 +188,9 @@ clean:
 	-rm -f coverage.xml
 	-rm -rf .pytest_cache/
 	-rm -rf __pycache__/
+	-rm -rf $(DIST_DIR)/
+	-rm -rf $(BUILD_DIR)/
+	-rm -rf *.egg-info/
 	-find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 	-find . -type f -name "*.pyc" -delete 2>/dev/null || true
 	@echo "✅ Cleanup completed!"

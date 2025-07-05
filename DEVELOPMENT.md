@@ -82,7 +82,7 @@ The shell script provides an alternative with colored output:
 | Command | Description |
 |---------|-------------|
 | `make docker-build` | Build Docker image |
-| `make docker-build-alpine` | Build Alpine Docker image |
+
 | `make docker-test` | Run tests in Docker container |
 | `make docker-clean` | Clean up Docker images |
 
