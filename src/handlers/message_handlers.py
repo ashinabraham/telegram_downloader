@@ -88,11 +88,11 @@ async def status_command(event):
         # Build status message
         status_message = "📊 **Download Status for " + user_id + ":**\n\n"
         status_message += "📈 **Summary:**\n"
-        status_message += "• Total: " + str(status['total']) + "\n"
-        status_message += "• Queued: " + str(status['queued']) + "\n"
-        status_message += "• Downloading: " + str(status['downloading']) + "\n"
-        status_message += "• Completed: " + str(status['completed']) + "\n"
-        status_message += "• Failed: " + str(status['failed']) + "\n\n"
+        status_message += "• Total: " + str(status["total"]) + "\n"
+        status_message += "• Queued: " + str(status["queued"]) + "\n"
+        status_message += "• Downloading: " + str(status["downloading"]) + "\n"
+        status_message += "• Completed: " + str(status["completed"]) + "\n"
+        status_message += "• Failed: " + str(status["failed"]) + "\n\n"
 
         if status["downloads"]:
             status_message += "📁 **Downloads:**\n"

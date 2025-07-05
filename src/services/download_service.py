@@ -193,9 +193,7 @@ class DownloadService:
             save_path = await DownloadService.generate_save_path(user_id, filename)
 
             # Queue the download
-            await download_manager.queue_download(
-                user_id, file_message, save_path
-            )
+            await download_manager.queue_download(user_id, file_message, save_path)
 
             logger.info(
                 f"Download queued for user {user_id}: {filename} -> {save_path}"
