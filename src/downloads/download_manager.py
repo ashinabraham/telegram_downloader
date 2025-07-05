@@ -92,7 +92,7 @@ class DownloadManager:
             logger.error(f"Failed to send notification to user {user_id}: {e}")
 
     async def download_with_progress(self, task: DownloadTask) -> None:
-        """Download file with simple notification."""
+        """Download file with simple notification and .part extension handling."""
         try:
             task.status = "downloading"
 
@@ -127,6 +127,9 @@ class DownloadManager:
             from ..bot.client import client
             await client.send_message(chat_id, notification_text)
 
+            # Download to .part file
+            part_path = task.save_path + ".part"
+
             # Simple progress callback that only updates internal state
             def progress_callback(received_bytes, total_bytes):
                 with task.progress_lock:
@@ -136,11 +139,18 @@ class DownloadManager:
             # Download with optimized settings
             downloaded_file = await client.download_media(
                 task.file_message.media,
-                task.save_path,
+                part_path,
                 progress_callback=progress_callback,
             )
 
             if downloaded_file:
+                # Rename .part file to final filename
+                try:
+                    os.rename(part_path, task.save_path)
+                    final_path = task.save_path
+                except Exception as e:
+                    logger.error(f"Failed to rename .part file: {e}")
+                    final_path = part_path
                 task.status = "completed"
                 total_time = time.time() - task.start_time
                 avg_speed = task.total_bytes / total_time if total_time > 0 else 0
@@ -152,7 +162,7 @@ class DownloadManager:
                         notification_text = (
                             f"🎉 **Download Complete!**\n\n"
                             f"📁 **File:** {filename}\n"
-                            f"📂 **Location:** {downloaded_file}\n"
+                            f"📂 **Location:** {final_path}\n"
                             f"⏱️ **Time:** {total_time:.1f} seconds\n"
                             f"🚀 **Avg Speed:** {avg_speed / (1024 * 1024):.1f} MB/s\n"
                             f"📊 **Size:** {file_size_mb:.1f} MB"
@@ -162,7 +172,7 @@ class DownloadManager:
                     logger.error(f"Failed to send completion notification: {e}")
 
                 logger.info(
-                    f"Download completed: {downloaded_file} in {total_time:.1f}s"
+                    f"Download completed: {final_path} in {total_time:.1f}s"
                 )
             else:
                 task.status = "failed"
