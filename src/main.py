@@ -9,7 +9,8 @@ import sys
 from pathlib import Path
 
 # Import version information first
-from . import version
+sys.path.insert(0, str(Path(__file__).parent))
+import version
 
 # Configure logging
 logging.basicConfig(
