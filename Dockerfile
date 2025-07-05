@@ -16,8 +16,8 @@ COPY . .
 # Install the package in development mode
 RUN pip install -e .
 
-# Create directories for downloads and saved files
-RUN mkdir -p downloads
+# Create directories for downloads, saved files, and sessions
+RUN mkdir -p downloads sessions
 
 # Run the bot using the installed package
 CMD ["telegram-downloader-bot"] 

@@ -24,7 +24,7 @@ bot_token: str = config.bot_token  # type: ignore
 
 # Initialize client with optimized settings for downloads
 client: TelegramClient = TelegramClient(
-    "bot_session",
+    "/app/sessions/bot_session",  # Use dedicated sessions directory
     api_id,
     api_hash,
     # Optimized connection settings for downloads
