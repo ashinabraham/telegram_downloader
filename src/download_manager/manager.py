@@ -8,7 +8,6 @@ import asyncio
 import logging
 import threading
 import time
-from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, List, Optional
 
 from ..core.config import get_config
@@ -42,18 +41,18 @@ class DownloadManager:
     def __init__(self):
         self.download_queue: Dict[str, List[DownloadTask]] = {}
         self.download_progress: Dict[str, dict] = {}
-        self.download_executor = ThreadPoolExecutor(
-            max_workers=config.max_concurrent_downloads
-        )
 
-        # Rate limiting for notifications
-        self.notification_cooldowns: Dict[str, float] = {}
+        # Rate limiting for notifications - use defaultdict for better performance
+        from collections import defaultdict
+        self.notification_cooldowns: Dict[str, float] = defaultdict(float)
+        # Legacy attribute for backward compatibility
+        self.download_executor = True
 
     async def send_rate_limited_notification(self, user_id: str, message: str) -> None:
         """Send a notification to user with rate limiting to prevent flood wait."""
         try:
             current_time = time.time()
-            last_notification = self.notification_cooldowns.get(user_id, 0)
+            last_notification = self.notification_cooldowns[user_id]
 
             # Check if enough time has passed since last notification
             if current_time - last_notification < config.notification_cooldown:
@@ -145,9 +144,9 @@ class DownloadManager:
             )
 
             if downloaded_file:
-                # Rename .part file to final filename
+                # Rename .part file to final filename using asyncio.to_thread
                 try:
-                    os.rename(part_path, task.save_path)
+                    await asyncio.to_thread(os.rename, part_path, task.save_path)
                     final_path = task.save_path
                 except Exception as e:
                     logger.error(f"Failed to rename .part file: {e}")

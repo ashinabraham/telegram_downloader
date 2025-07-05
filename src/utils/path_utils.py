@@ -4,6 +4,7 @@ Handles directory navigation, path encoding, and file operations.
 """
 
 import os
+import asyncio
 import logging
 from typing import List, Tuple
 
@@ -50,20 +51,26 @@ class PathManager:
     async def get_directory_options(
         self, current_path: str = ""
     ) -> List[Tuple[str, str]]:
-        """Get directory options for the current path."""
+        """Get directory options for the current path using async operations."""
         # Ensure current_path is within bounds
         if not self._is_path_within_bounds(current_path):
             current_path = self.base_download_dir
             
         full_path = current_path if current_path else self.base_download_dir
-        if not os.path.exists(full_path):
+        
+        # Check if path exists using async operation
+        if not await asyncio.to_thread(os.path.exists, full_path):
             return []
 
         items = []
         try:
-            for item in os.listdir(full_path):
+            # List directory contents using async operation
+            directory_contents = await asyncio.to_thread(os.listdir, full_path)
+            
+            for item in directory_contents:
                 item_path = os.path.join(full_path, item)
-                if os.path.isdir(item_path):
+                # Check if it's a directory using async operation
+                if await asyncio.to_thread(os.path.isdir, item_path):
                     # Skip hidden directories and system directories for safety
                     if not item.startswith(".") and item not in [
                         "System",
@@ -125,6 +132,19 @@ class PathManager:
             logger.error(f"Failed to create directory {directory}: {e}")
             return False
 
+    async def ensure_directory_exists_async(self, directory: str) -> bool:
+        """Async version of ensure_directory_exists."""
+        try:
+            # Ensure directory is within bounds
+            if not self._is_path_within_bounds(directory):
+                logger.error(f"Cannot create directory {directory} - outside allowed bounds")
+                return False
+            await asyncio.to_thread(os.makedirs, directory, exist_ok=True)
+            return True
+        except (OSError, PermissionError) as e:
+            logger.error(f"Failed to create directory {directory}: {e}")
+            return False
+
     def get_parent_directory(self, path: str) -> str:
         """Get the parent directory of a path."""
         parent = os.path.dirname(path)
@@ -163,6 +183,25 @@ class PathManager:
         return normalized_path not in dangerous_dirs and not normalized_path.startswith(
             "/dev/"
         )
+
+    async def get_file_size(self, file_path: str) -> int:
+        """Get file size using async operation."""
+        try:
+            if not self._is_path_within_bounds(file_path):
+                return 0
+            stat_result = await asyncio.to_thread(os.stat, file_path)
+            return stat_result.st_size
+        except (OSError, PermissionError):
+            return 0
+
+    async def file_exists(self, file_path: str) -> bool:
+        """Check if file exists using async operation."""
+        try:
+            if not self._is_path_within_bounds(file_path):
+                return False
+            return await asyncio.to_thread(os.path.exists, file_path)
+        except (OSError, PermissionError):
+            return False
 
 
 # Global path manager instance
