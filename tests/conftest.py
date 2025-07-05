@@ -12,7 +12,9 @@ from telethon.tl.types import User, Document, DocumentAttributeFilename
 
 # Add src to path for imports
 import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
 
 @pytest.fixture
 def temp_dir():
@@ -21,35 +23,47 @@ def temp_dir():
     yield temp_dir
     shutil.rmtree(temp_dir)
 
+
 @pytest.fixture
 def mock_config():
     """Mock configuration for testing."""
-    with patch.dict(os.environ, {
-        'API_ID': '12345',
-        'API_HASH': 'test_hash',
-        'BOT_TOKEN': 'test_token',
-        'ALLOWED_USERS': '123456,789012'
-    }):
+    with patch.dict(
+        os.environ,
+        {
+            "API_ID": "12345",
+            "API_HASH": "test_hash",
+            "BOT_TOKEN": "test_token",
+            "ALLOWED_USERS": "123456,789012",
+        },
+    ):
         from src.core.config import Config
+
         return Config()
+
 
 @pytest.fixture
 def mock_user_state():
     """Mock user state for testing."""
     from src.core.user_state import UserState
+
     return UserState()
+
 
 @pytest.fixture
 def mock_path_manager():
     """Mock path manager for testing."""
     from src.utils.path_utils import PathManager
+
     return PathManager()
+
 
 @pytest.fixture
 def mock_download_manager():
     """Mock download manager for testing."""
     from src.downloads.download_manager import DownloadManager
+
     return DownloadManager()
+
 
 @pytest.fixture
 def mock_telegram_client():
@@ -62,6 +76,7 @@ def mock_telegram_client():
     client.download_media = AsyncMock()
     return client
 
+
 @pytest.fixture
 def mock_user():
     """Mock Telegram user."""
@@ -72,19 +87,21 @@ def mock_user():
     user.last_name = "User"
     return user
 
+
 @pytest.fixture
 def mock_document():
     """Mock Telegram document."""
     document = Mock(spec=Document)
     document.id = 123456789
     document.access_hash = 987654321
-    document.file_reference = b'test_reference'
+    document.file_reference = b"test_reference"
     document.date = 1640995200  # 2022-01-01
     document.mime_type = "application/pdf"
     document.size = 1024000  # 1MB
     document.dc_id = 2
     document.attributes = [DocumentAttributeFilename(file_name="test_file.pdf")]
     return document
+
 
 @pytest.fixture
 def mock_file_message():
@@ -95,6 +112,7 @@ def mock_file_message():
     message.media.document.size = 1024000
     message.media.document.attributes = [Mock(file_name="test_file.pdf")]
     return message
+
 
 @pytest.fixture
 def mock_event():
@@ -111,6 +129,7 @@ def mock_event():
     event.message.media = None
     return event
 
+
 @pytest.fixture
 def sample_directory_structure(temp_dir):
     """Create a sample directory structure for testing."""
@@ -118,38 +137,38 @@ def sample_directory_structure(temp_dir):
     os.makedirs(os.path.join(temp_dir, "folder1"), exist_ok=True)
     os.makedirs(os.path.join(temp_dir, "folder2"), exist_ok=True)
     os.makedirs(os.path.join(temp_dir, "folder1", "subfolder"), exist_ok=True)
-    
+
     # Create test files
     with open(os.path.join(temp_dir, "test_file1.txt"), "w") as f:
         f.write("test content 1")
-    
+
     with open(os.path.join(temp_dir, "folder1", "test_file2.txt"), "w") as f:
         f.write("test content 2")
-    
+
     return temp_dir
+
 
 @pytest.fixture
 def test_env_vars():
     """Test environment variables."""
     return {
-        'API_ID': '12345',
-        'API_HASH': 'test_hash_123456789',
-        'BOT_TOKEN': 'test_bot_token_123456789',
-        'ALLOWED_USERS': '123456,789012,345678'
+        "API_ID": "12345",
+        "API_HASH": "test_hash_123456789",
+        "BOT_TOKEN": "test_bot_token_123456789",
+        "ALLOWED_USERS": "123456,789012,345678",
     }
+
 
 @pytest.fixture
 def mock_download_task():
     """Mock download task for testing."""
     from src.downloads.download_manager import DownloadTask
-    
+
     task = DownloadTask(
-        user_id="123456",
-        file_message=Mock(),
-        save_path="/test/path/file.pdf"
+        user_id="123456", file_message=Mock(), save_path="/test/path/file.pdf"
     )
     task.downloaded_bytes = 512000  # 50% of 1MB
     task.total_bytes = 1024000
     task.status = "downloading"
     task.start_time = 1640995200.0
-    return task 
+    return task
